@@ -42,169 +42,154 @@ document.addEventListener('DOMContentLoaded', () => {
             if (hiddenInput) hiddenInput.value = kartId;
             if (kartIdSpan) kartIdSpan.textContent = kartId;
         }
-        // Use Tailwind classes directly now
         modalElement.classList.remove('hidden');
-        modalElement.classList.add('flex'); // Ensure flex is active for centering
+        modalElement.classList.add('flex');
     }
 
     function hideModal(modalElement) {
         const hiddenInput = modalElement.querySelector('input[type="hidden"]');
         if (hiddenInput) hiddenInput.value = '';
-        // Use Tailwind classes directly
         modalElement.classList.add('hidden');
         modalElement.classList.remove('flex');
     }
 
 
     // --- Core Logic Functions ---
-
-    // *** UPDATED Function: Uses Tailwind classes directly for colors ***
     function updateButtonAppearance(kartId) {
         const kart = kartStatus[kartId];
-        if (!kart) return; // Exit if kart doesn't exist
+        if (!kart) return;
 
         const status = kart.status;
         const button = kart.element;
 
-        // Remove all potential state-based classes
         button.classList.remove(
-            'bg-blue-500', 'hover:bg-blue-700', // Available state classes
-            'bg-red-500', 'hover:bg-red-700', // Rented state classes
-            'bg-orange-500', 'hover:bg-orange-700', 'animate-pulse' // Overtime state classes
+            'bg-blue-500', 'hover:bg-blue-700',
+            'bg-red-500', 'hover:bg-red-700',
+            'bg-orange-500', 'hover:bg-orange-700', 'animate-pulse'
         );
 
-        // Reset button text to just the kart ID
         button.firstChild.nodeValue = kartId;
-        kart.timerDisplayElement.textContent = ''; // Clear timer display
+        kart.timerDisplayElement.textContent = '';
 
-        // Add classes based on the current state
         switch (status) {
             case 'available':
                 button.classList.add('bg-blue-500', 'hover:bg-blue-700');
                 break;
             case 'rented':
                 button.classList.add('bg-red-500', 'hover:bg-red-700');
-                // Timer text will be added by the interval function
                 break;
             case 'overtime':
                 button.classList.add('bg-orange-500', 'hover:bg-orange-700', 'animate-pulse');
-                // Stopwatch text will be added by the interval function
                 break;
         }
     }
 
-    // *** UPDATED Function: Calls the new updateButtonAppearance ***
     function resetKart(kartId) {
         console.log(`Resetting Kart ${kartId}`);
         const kart = kartStatus[kartId];
+        if (!kart) { console.error(`Reset Error: Kart ${kartId} not found.`); return; }
 
-        if (!kart) {
-            console.error(`Attempted to reset non-existent kart: ${kartId}`);
-            return;
-        }
-
-        if (kart.timerId) {
-            clearInterval(kart.timerId);
-            kart.timerId = null;
-        }
-        if (kart.stopwatchId) {
-            clearInterval(kart.stopwatchId);
-            kart.stopwatchId = null;
-        }
+        if (kart.timerId) { clearInterval(kart.timerId);
+            kart.timerId = null; }
+        if (kart.stopwatchId) { clearInterval(kart.stopwatchId);
+            kart.stopwatchId = null; }
 
         kart.status = 'available';
         kart.endTime = null;
         kart.overtimeStartTime = null;
-
-        updateButtonAppearance(kartId); // This will now apply the blue color
-        // saveState(); // Optional persistence
+        updateButtonAppearance(kartId);
     }
 
-    // *** UPDATED Function: Calls the new updateButtonAppearance ***
     function startCountdown(kartId, durationMinutes) {
         const kart = kartStatus[kartId];
-        if (!kart) {
-            console.error(`Attempted to start countdown for non-existent kart: ${kartId}`);
-            return;
-        }
+        if (!kart) { console.error(`Countdown Error: Kart ${kartId} not found.`); return; }
+        if (kart.status !== 'available') { console.warn(`Countdown Warning: Kart ${kartId} not available (status: ${kart.status}).`); return; }
+
 
         const now = Date.now();
         kart.endTime = now + durationMinutes * 60 * 1000;
-        kart.status = 'rented'; // Set status *before* updating appearance
+        kart.status = 'rented';
+        updateButtonAppearance(kartId);
 
-        updateButtonAppearance(kartId); // Applies red color
-
-        // Clear previous timers just in case
         if (kart.timerId) clearInterval(kart.timerId);
         if (kart.stopwatchId) clearInterval(kart.stopwatchId);
         kart.stopwatchId = null;
 
         kart.timerId = setInterval(() => {
-            if (!kartStatus[kartId] || kartStatus[kartId].status !== 'rented') {
+            const currentKartState = kartStatus[kartId]; // Re-fetch current state inside interval
+            if (!currentKartState || currentKartState.status !== 'rented' || currentKartState.timerId !== kart.timerId) {
+                // Stop interval if kart doesn't exist, is not rented anymore,
+                // or if a new timer has been started for this kart (timerId mismatch)
                 clearInterval(kart.timerId);
                 return;
             }
+
             const currentTime = Date.now();
-            const remainingTime = Math.round((kart.endTime - currentTime) / 1000);
+            const remainingTime = Math.round((currentKartState.endTime - currentTime) / 1000);
 
             if (remainingTime <= 0) {
                 clearInterval(kart.timerId);
-                kart.timerId = null;
+                // Check status again *after* clearing interval, before showing modal
                 if (kartStatus[kartId] && kartStatus[kartId].status === 'rented') {
+                    kart.timerId = null; // Ensure timerId is cleared in state
                     console.log(`Kart ${kartId} time expired.`);
-                    // Update text *before* showing modal
                     kart.timerDisplayElement.textContent = ' Expired!';
                     showModal(returnModal, kartId);
                 }
             } else {
                 kart.timerDisplayElement.textContent = ` (${formatTimeMMSS(remainingTime)})`;
             }
-        }, 1000);
+        }, 1000); // Update every second
+
+        // Store the newly created timerId in the state *after* setting the interval
+        kart.timerId = kart.timerId; // This line seems redundant, let's remove it. The ID is assigned in the setInterval line.
 
         console.log(`Kart ${kartId} rented for ${durationMinutes} mins. End time: ${new Date(kart.endTime)}`);
-        // saveState(); // Optional persistence
     }
 
-    // *** UPDATED Function: Calls the new updateButtonAppearance ***
+
     function startOvertime(kartId) {
         const kart = kartStatus[kartId];
-        if (!kart) {
-            console.error(`Attempted to start overtime for non-existent kart: ${kartId}`);
+        if (!kart) { console.error(`Overtime Error: Kart ${kartId} not found.`); return; }
+
+        // Ensure we are coming from a state where overtime makes sense (e.g. rented, or time just expired)
+        // This prevents accidentally starting overtime on an available kart through edge cases
+        if (kart.status === 'available') {
+            console.warn(`Overtime Warning: Kart ${kartId} is available. Cannot start overtime.`);
+            resetKart(kartId); // Reset just in case
             return;
         }
-        kart.status = 'overtime'; // Set status *before* updating appearance
+
+        kart.status = 'overtime';
         kart.overtimeStartTime = Date.now();
+        updateButtonAppearance(kartId);
 
-        updateButtonAppearance(kartId); // Applies orange color + pulse
+        if (kart.timerId) { clearInterval(kart.timerId);
+            kart.timerId = null; } // Ensure countdown timer is stopped
+        if (kart.stopwatchId) clearInterval(kart.stopwatchId); // Clear previous stopwatch if any
 
-        // Clear previous timers
-        if (kart.timerId) clearInterval(kart.timerId);
-        kart.timerId = null;
-        if (kart.stopwatchId) clearInterval(kart.stopwatchId);
-
-        kart.stopwatchId = setInterval(() => {
-            if (!kartStatus[kartId] || kartStatus[kartId].status !== 'overtime') {
-                clearInterval(kart.stopwatchId);
+        const newStopwatchId = setInterval(() => { // Assign to a new variable first
+            const currentKartState = kartStatus[kartId]; // Re-fetch state
+            if (!currentKartState || currentKartState.status !== 'overtime' || currentKartState.stopwatchId !== newStopwatchId) {
+                // Stop if kart doesn't exist, not in overtime, or a new stopwatch started
+                clearInterval(newStopwatchId);
                 return;
             }
             const now = Date.now();
-            const elapsedSeconds = Math.round((now - kart.overtimeStartTime) / 1000);
-            kart.timerDisplayElement.textContent = ` (OT: ${formatTimeHHMMSS(elapsedSeconds)})`;
+            const elapsedSeconds = Math.round((now - currentKartState.overtimeStartTime) / 1000);
+            currentKartState.timerDisplayElement.textContent = ` (OT: ${formatTimeHHMMSS(elapsedSeconds)})`;
         }, 1000);
 
+        kart.stopwatchId = newStopwatchId; // Assign the correct ID to the state
+
         console.log(`Kart ${kartId} entered overtime.`);
-        // saveState(); // Optional persistence
     }
 
-    // Function stopOvertime (no changes needed in its logic regarding appearance)
     function stopOvertime(kartId) {
         const kart = kartStatus[kartId];
-        if (!kart) {
-            console.error(`Attempted to stop overtime for non-existent kart: ${kartId}`);
-            return;
-        }
+        if (!kart) { console.error(`Stop Overtime Error: Kart ${kartId} not found.`); return; }
         if (kart.status !== 'overtime') {
-            console.warn(`Attempted to stop overtime for kart ${kartId} which is not in overtime (status: ${kart.status}).`);
+            console.warn(`Stop Overtime Warning: Kart ${kartId} not in overtime (status: ${kart.status}).`);
             return;
         }
         if (kart.stopwatchId) {
@@ -217,41 +202,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = Date.now();
         const elapsedOvertimeSeconds = kart.overtimeStartTime ? Math.round((now - kart.overtimeStartTime) / 1000) : 0;
         const formattedDuration = formatTimeHHMMSS(elapsedOvertimeSeconds);
-
         console.log(`Kart ${kartId} overtime stopped. Duration: ${formattedDuration}`);
-
         overtimeDurationSpan.textContent = formattedDuration;
         showModal(overtimeModal, kartId);
-        // Reset happens when 'OK' is clicked in the modal
     }
 
 
     // --- Event Handlers ---
-    // handleKartClick function remains the same as the corrected version before
     function handleKartClick(event) {
         const button = event.target.closest('.kart-button');
         if (!button) return;
-
         const kartId = button.dataset.kartId;
-        const kart = kartStatus[kartId]; // Get the kart object
-
-        // Check if kart exists in our state management
-        if (!kart) {
-            console.error(`Kart ${kartId} clicked, but not found in kartStatus object.`);
-            return;
-        }
-        const status = kart.status; // Get status from the existing kart object
-
+        const kart = kartStatus[kartId];
+        if (!kart) { console.error(`Click Error: Kart ${kartId} not found.`); return; }
+        const status = kart.status;
         console.log(`Kart ${kartId} clicked. Status: ${status}`);
-
         switch (status) {
             case 'available':
                 showModal(durationModal, kartId);
                 break;
             case 'rented':
-                if (confirm(`Kart ${kartId} is currently rented. Mark as returned early?`)) {
-                    resetKart(kartId);
-                }
+                if (confirm(`Kart ${kartId} is currently rented. Mark as returned early?`)) { resetKart(kartId); }
                 break;
             case 'overtime':
                 stopOvertime(kartId);
@@ -263,47 +234,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- Initialization ---
-
-    // *** UPDATED Function: Applies blue Tailwind classes initially ***
     function generateKartButtons() {
         kartContainer.innerHTML = '';
         kartStatus = {};
-
         for (let i = 0; i < CATEGORY_COUNT; i++) {
             const categoryStart = i * KARTS_PER_CATEGORY + 1;
             const categoryEnd = Math.min((i + 1) * KARTS_PER_CATEGORY, TOTAL_KARTS);
-
             const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'category-section bg-white p-4 rounded shadow mb-4'; // Added mb-4 for spacing
-
+            categoryDiv.className = 'category-section bg-white p-4 rounded shadow mb-4';
             const categoryHeading = document.createElement('h2');
             categoryHeading.className = 'text-xl font-semibold mb-3';
             categoryHeading.textContent = `Category ${i + 1} (Karts ${categoryStart}-${categoryEnd})`;
             categoryDiv.appendChild(categoryHeading);
-
             const buttonWrapper = document.createElement('div');
             buttonWrapper.id = `category-${i + 1}`;
-            buttonWrapper.className = 'flex flex-wrap gap-2'; // Use gap-2 for spacing
+            buttonWrapper.className = 'flex flex-wrap gap-2';
             categoryDiv.appendChild(buttonWrapper);
-
             kartContainer.appendChild(categoryDiv);
-
             for (let kartIdNum = categoryStart; kartIdNum <= categoryEnd; kartIdNum++) {
                 const kartId = String(kartIdNum);
                 const button = document.createElement('button');
                 button.type = 'button';
-                // Base class + initial state (available = blue)
                 button.className = 'kart-button bg-blue-500 hover:bg-blue-700';
                 button.dataset.kartId = kartId;
-
                 button.appendChild(document.createTextNode(kartId));
-
                 const timerDisplay = document.createElement('span');
-                timerDisplay.className = 'timer-display'; // Class defined in <style>
+                timerDisplay.className = 'timer-display';
                 button.appendChild(timerDisplay);
-
                 buttonWrapper.appendChild(button);
-
                 kartStatus[kartId] = {
                     status: 'available',
                     timerId: null,
@@ -319,25 +277,40 @@ document.addEventListener('DOMContentLoaded', () => {
         kartContainer.addEventListener('click', handleKartClick);
     }
 
-    // --- Modal Event Listeners (no changes needed here) ---
-    // Duration Modal
+    // --- Modal Event Listeners ---
+
+    // *** ADDED Event Listener for 30s Button ***
+    document.getElementById('duration-30s').addEventListener('click', () => {
+        const kartId = durationModalKartIdHidden.value;
+        const kart = kartStatus[kartId]; // Get kart object
+        if (kartId && kart && kart.status === 'available') {
+            startCountdown(kartId, 0.5); // 0.5 minutes = 30 seconds
+            hideModal(durationModal);
+        } else if (kartId) {
+            console.warn(`Attempted to rent kart ${kartId} (30s) which is not available or doesn't exist.`);
+            hideModal(durationModal); // Hide modal anyway
+        }
+    });
+
     document.getElementById('duration-30m').addEventListener('click', () => {
         const kartId = durationModalKartIdHidden.value;
-        if (kartId && kartStatus[kartId] && kartStatus[kartId].status === 'available') {
+        const kart = kartStatus[kartId];
+        if (kartId && kart && kart.status === 'available') {
             startCountdown(kartId, 30);
             hideModal(durationModal);
         } else if (kartId) {
-            console.warn(`Attempted to rent kart ${kartId} which is not available.`);
+            console.warn(`Attempted to rent kart ${kartId} (30m) which is not available or doesn't exist.`);
             hideModal(durationModal);
         }
     });
     document.getElementById('duration-1h').addEventListener('click', () => {
         const kartId = durationModalKartIdHidden.value;
-        if (kartId && kartStatus[kartId] && kartStatus[kartId].status === 'available') {
+        const kart = kartStatus[kartId];
+        if (kartId && kart && kart.status === 'available') {
             startCountdown(kartId, 60);
             hideModal(durationModal);
         } else if (kartId) {
-            console.warn(`Attempted to rent kart ${kartId} which is not available.`);
+            console.warn(`Attempted to rent kart ${kartId} (1h) which is not available or doesn't exist.`);
             hideModal(durationModal);
         }
     });
@@ -345,34 +318,31 @@ document.addEventListener('DOMContentLoaded', () => {
         hideModal(durationModal);
     });
 
-    // Return Modal
+    // Return Modal Listeners (no changes)
     document.getElementById('return-yes').addEventListener('click', () => {
         const kartId = returnModalKartIdHidden.value;
-        if (kartId && kartStatus[kartId]) {
-            resetKart(kartId);
-            hideModal(returnModal);
-        }
+        if (kartId && kartStatus[kartId]) { resetKart(kartId);
+            hideModal(returnModal); }
     });
     document.getElementById('return-no').addEventListener('click', () => {
         const kartId = returnModalKartIdHidden.value;
-        if (kartId && kartStatus[kartId]) {
-            if (kartStatus[kartId].status === 'rented' || kartStatus[kartId].endTime <= Date.now()) {
+        const kart = kartStatus[kartId];
+        if (kartId && kart) {
+            if (kart.status === 'rented' || (kart.endTime && kart.endTime <= Date.now())) {
                 startOvertime(kartId);
             } else {
-                console.warn(`Kart ${kartId} - 'No' clicked on return modal, but status is ${kartStatus[kartId].status}. Resetting.`);
+                console.warn(`Kart ${kartId} - 'No' clicked, unexpected status: ${kart.status}. Resetting.`);
                 resetKart(kartId);
             }
             hideModal(returnModal);
         }
     });
 
-    // Overtime Modal
+    // Overtime Modal Listener (no changes)
     document.getElementById('overtime-ok').addEventListener('click', () => {
         const kartId = overtimeModalKartIdHidden.value;
-        if (kartId && kartStatus[kartId]) {
-            resetKart(kartId);
-            hideModal(overtimeModal);
-        }
+        if (kartId && kartStatus[kartId]) { resetKart(kartId);
+            hideModal(overtimeModal); }
     });
 
     // --- Initial Setup ---
