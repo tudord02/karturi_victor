@@ -1,0 +1,238 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    /* Slightly off-white background for the page */
+}
+
+h1,
+h3 {
+    text-align: center;
+    color: #333;
+    /* Darker color for headings */
+}
+
+.category-container {
+    margin-bottom: 30px;
+    /* Increased spacing between categories */
+    padding: 20px;
+    border: 1px solid #ddd;
+    /* Lighter border */
+    border-radius: 10px;
+    /* More rounded corners */
+    background-color: #ffffff;
+    /* White background for category sections */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow for depth */
+}
+
+.category-title {
+    margin-top: 0;
+    margin-bottom: 20px;
+    /* Increased spacing below title */
+    font-size: 1.4em;
+    /* Larger category titles */
+    color: #555;
+    /* Medium-dark color for category titles */
+    border-bottom: 2px solid #eee;
+    /* Slightly thicker border */
+    padding-bottom: 10px;
+    /* More padding below title */
+}
+
+.kart-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    /* Slightly larger min button size */
+    gap: 15px;
+    /* Increased gap between buttons */
+}
+
+.kart-button {
+    padding: 12px 8px;
+    /* Adjusted padding */
+    font-size: 0.95em;
+    /* Slightly larger font */
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    /* Slightly more rounded */
+    background-color: #d4efdf;
+    /* Softer Green - Available */
+    color: #1e8449;
+    /* Darker green text */
+    text-align: center;
+    position: relative;
+    min-height: 60px;
+    /* Increased min-height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    /* Added transform transition */
+}
+
+.kart-button:hover {
+    transform: translateY(-2px);
+    /* Slight lift on hover */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.kart-button.rented {
+    background-color: #f5b7b1;
+    /* Softer Red - Rented */
+    color: #c0392b;
+    /* Darker red text */
+}
+
+.kart-button.overdue {
+    background-color: #fdebd0;
+    /* Softer Yellow/Orange - Overdue */
+    color: #d35400;
+    /* Darker orange text */
+    animation: blink 1.3s linear infinite;
+}
+
+@keyframes blink {
+    0%,
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 5px #d35400;
+    }
+    /* Added subtle glow */
+    50% {
+        opacity: 0.6;
+        box-shadow: none;
+    }
+}
+
+.kart-timer {
+    font-size: 0.85em;
+    font-weight: normal;
+    /* Normal weight for timer text */
+    margin-top: 5px;
+    color: #555;
+    /* Timer text color */
+}
+
+.kart-button.rented .kart-timer {
+    color: #c0392b;
+    /* Match text color when rented */
+}
+
+.kart-button.overdue .kart-timer {
+    color: #d35400;
+    /* Match text color when overdue */
+    font-weight: bold;
+}
+
+
+/* Pop-up styles */
+
+.popup {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    /* Ensure popups are on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Darker overlay */
+    align-items: center;
+    /* Vertically center */
+    justify-content: center;
+    /* Horizontally center */
+}
+
+.popup-content {
+    background-color: #fff;
+    margin: auto;
+    /* Centering handled by flex on .popup */
+    padding: 25px;
+    border: 1px solid #bbb;
+    width: 90%;
+    max-width: 450px;
+    /* Slightly wider max-width */
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.popup-content h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.popup-content p {
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.popup-content button {
+    padding: 12px 20px;
+    /* Larger padding */
+    margin: 10px 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.95em;
+    font-weight: bold;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.popup-content button:hover {
+    transform: translateY(-1px);
+}
+
+#popup-30min,
+#return-yes {
+    background-color: #a9dfbf;
+    /* Greenish buttons */
+    color: #145a32;
+    border-color: #99cfaf;
+}
+
+#popup-30min:hover,
+#return-yes:hover {
+    background-color: #82c99f;
+}
+
+#popup-1h {
+    background-color: #aed6f1;
+    /* Bluish button */
+    color: #1b4f72;
+    border-color: #9dc6e1;
+}
+
+#popup-1h:hover {
+    background-color: #8cbde1;
+}
+
+#return-no {
+    background-color: #f5b7b1;
+    /* Reddish button */
+    color: #922b21;
+    border-color: #e5a7a1;
+}
+
+#return-no:hover {
+    background-color: #e09791;
+}
+
+.popup-content button.cancel-button {
+    /* For a generic cancel button if needed */
+    background-color: #e5e7e9;
+    color: #566573;
+    border-color: #d5d7d9;
+}
+
+.popup-content button.cancel-button:hover {
+    background-color: #cfd1d3;
+}
