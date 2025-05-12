@@ -1,238 +1,453 @@
+/* General Body and App Container Styles */
+
 body {
-    font-family: sans-serif;
-    margin: 20px;
-    background-color: #f4f4f4;
-    /* Slightly off-white background for the page */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    /* Light gray background */
+    color: #333;
+    line-height: 1.6;
+}
+
+.app-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 h1,
+h2,
 h3 {
     text-align: center;
-    color: #333;
-    /* Darker color for headings */
+    color: #1c2938;
+    /* Dark blue-gray for headings */
 }
 
-.category-container {
+h1 {
     margin-bottom: 30px;
-    /* Increased spacing between categories */
-    padding: 20px;
-    border: 1px solid #ddd;
+    font-size: 2em;
+}
+
+
+/* Category Styles */
+
+.category-container {
+    margin-bottom: 35px;
+    padding: 25px;
+    border: 1px solid #e0e0e0;
     /* Lighter border */
     border-radius: 10px;
-    /* More rounded corners */
-    background-color: #ffffff;
-    /* White background for category sections */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    /* Subtle shadow for depth */
+    background-color: #f9fafb;
+    /* Very light gray for category sections */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .category-title {
     margin-top: 0;
-    margin-bottom: 20px;
-    /* Increased spacing below title */
-    font-size: 1.4em;
-    /* Larger category titles */
-    color: #555;
-    /* Medium-dark color for category titles */
-    border-bottom: 2px solid #eee;
-    /* Slightly thicker border */
-    padding-bottom: 10px;
-    /* More padding below title */
+    margin-bottom: 25px;
+    font-size: 1.6em;
+    color: #34495e;
+    /* Slightly desaturated blue */
+    border-bottom: 2px solid #e0e6ed;
+    padding-bottom: 12px;
 }
+
+
+/* Kart Button Grid and Button Styles */
 
 .kart-buttons-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    /* Slightly larger min button size */
-    gap: 15px;
-    /* Increased gap between buttons */
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    /* Responsive columns */
+    gap: 18px;
+    /* Increased gap */
 }
 
 .kart-button {
     padding: 12px 8px;
-    /* Adjusted padding */
     font-size: 0.95em;
-    /* Slightly larger font */
-    font-weight: bold;
     cursor: pointer;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    /* Slightly more rounded */
-    background-color: #d4efdf;
-    /* Softer Green - Available */
-    color: #1e8449;
-    /* Darker green text */
+    border: 1px solid #ced4da;
+    /* Standard border color */
+    border-radius: 8px;
+    /* More rounded */
+    background-color: #e9ecef;
+    /* Default light gray */
+    color: #495057;
+    /* Dark gray text */
     text-align: center;
     position: relative;
-    min-height: 60px;
-    /* Increased min-height */
+    min-height: 80px;
+    /* Increased height for content */
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
+    /* Space out content */
     align-items: center;
     overflow: hidden;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    /* Added transform transition */
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .kart-button:hover {
-    transform: translateY(-2px);
-    /* Slight lift on hover */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
+    /* Lift effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Enhanced shadow on hover */
+}
+
+.kart-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.3;
+    margin-bottom: 5px;
+    width: 100%;
+    /* Ensure it takes full width for centering */
+}
+
+.kart-name {
+    font-weight: 600;
+    /* Semi-bold */
+    font-size: 1.05em;
+    margin-bottom: 3px;
+}
+
+.kart-price {
+    font-size: 0.8em;
+    font-weight: 500;
+    color: #5f6368;
+    /* Medium gray for price */
+}
+
+.kart-button.available {
+    background-color: #d1fae5;
+    /* Light green */
+    color: #065f46;
+    /* Dark green text */
+    border-color: #a7f3d0;
+}
+
+.kart-button.available .kart-name {
+    color: #047857;
+}
+
+.kart-button.available .kart-price {
+    color: #059669;
 }
 
 .kart-button.rented {
-    background-color: #f5b7b1;
-    /* Softer Red - Rented */
-    color: #c0392b;
-    /* Darker red text */
+    background-color: #fee2e2;
+    /* Light red */
+    color: #991b1b;
+    /* Dark red text */
+    border-color: #fecaca;
+}
+
+.kart-button.rented .kart-name,
+.kart-button.rented .kart-timer {
+    color: #b91c1c;
 }
 
 .kart-button.overdue {
-    background-color: #fdebd0;
-    /* Softer Yellow/Orange - Overdue */
-    color: #d35400;
-    /* Darker orange text */
+    background-color: #ffedd5;
+    /* Light orange */
+    color: #9a3412;
+    /* Dark orange text */
+    border-color: #fed7aa;
     animation: blink 1.3s linear infinite;
+}
+
+.kart-button.overdue .kart-name,
+.kart-button.overdue .kart-timer {
+    color: #c2410c;
 }
 
 @keyframes blink {
     0%,
     100% {
         opacity: 1;
-        box-shadow: 0 0 5px #d35400;
+        box-shadow: 0 0 6px rgba(194, 65, 12, 0.5);
     }
-    /* Added subtle glow */
     50% {
-        opacity: 0.6;
+        opacity: 0.7;
         box-shadow: none;
     }
 }
 
 .kart-timer {
-    font-size: 0.85em;
-    font-weight: normal;
-    /* Normal weight for timer text */
-    margin-top: 5px;
-    color: #555;
-    /* Timer text color */
-}
-
-.kart-button.rented .kart-timer {
-    color: #c0392b;
-    /* Match text color when rented */
-}
-
-.kart-button.overdue .kart-timer {
-    color: #d35400;
-    /* Match text color when overdue */
-    font-weight: bold;
+    font-size: 0.95em;
+    font-weight: 700;
+    /* Bold timer */
+    margin-top: auto;
+    /* Push timer to bottom if space allows */
+    padding-top: 4px;
 }
 
 
-/* Pop-up styles */
+/* Pop-up Styles */
 
 .popup {
     display: none;
     position: fixed;
     z-index: 1000;
-    /* Ensure popups are on top */
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.6);
-    /* Darker overlay */
+    background-color: rgba(0, 0, 0, 0.55);
+    /* Slightly darker overlay */
     align-items: center;
-    /* Vertically center */
     justify-content: center;
-    /* Horizontally center */
+    padding: 15px;
+    /* Padding for smaller screens */
 }
 
 .popup-content {
-    background-color: #fff;
+    background-color: #ffffff;
     margin: auto;
-    /* Centering handled by flex on .popup */
-    padding: 25px;
-    border: 1px solid #bbb;
+    padding: 30px;
+    /* Increased padding */
+    border: 1px solid #adb5bd;
     width: 90%;
-    max-width: 450px;
-    /* Slightly wider max-width */
-    border-radius: 12px;
+    max-width: 480px;
+    border-radius: 10px;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .popup-content h3 {
     margin-top: 0;
-    margin-bottom: 15px;
-    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.4em;
 }
 
 .popup-content p {
-    margin-bottom: 20px;
-    color: #555;
+    margin-bottom: 25px;
+    font-size: 1.1em;
 }
 
 .popup-content button {
-    padding: 12px 20px;
-    /* Larger padding */
+    padding: 12px 22px;
     margin: 10px 8px;
     cursor: pointer;
     border-radius: 6px;
-    border: 1px solid #ccc;
-    font-size: 0.95em;
-    font-weight: bold;
+    border: none;
+    /* Removed border, relying on background */
+    font-size: 1em;
+    font-weight: 500;
     transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .popup-content button:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
 #popup-30min,
 #return-yes {
-    background-color: #a9dfbf;
-    /* Greenish buttons */
-    color: #145a32;
-    border-color: #99cfaf;
+    background-color: #28a745;
+    /* Bootstrap green */
+    color: white;
 }
 
 #popup-30min:hover,
 #return-yes:hover {
-    background-color: #82c99f;
+    background-color: #218838;
 }
 
 #popup-1h {
-    background-color: #aed6f1;
-    /* Bluish button */
-    color: #1b4f72;
-    border-color: #9dc6e1;
+    background-color: #007bff;
+    /* Bootstrap blue */
+    color: white;
 }
 
 #popup-1h:hover {
-    background-color: #8cbde1;
+    background-color: #0056b3;
 }
 
 #return-no {
-    background-color: #f5b7b1;
-    /* Reddish button */
-    color: #922b21;
-    border-color: #e5a7a1;
+    background-color: #dc3545;
+    /* Bootstrap red */
+    color: white;
 }
 
 #return-no:hover {
-    background-color: #e09791;
+    background-color: #c82333;
 }
 
 .popup-content button.cancel-button {
-    /* For a generic cancel button if needed */
-    background-color: #e5e7e9;
-    color: #566573;
-    border-color: #d5d7d9;
+    background-color: #6c757d;
+    /* Bootstrap gray */
+    color: white;
 }
 
 .popup-content button.cancel-button:hover {
-    background-color: #cfd1d3;
+    background-color: #5a6268;
+}
+
+
+/* History Navigation Button on index.html */
+
+.history-navigation {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 25px;
+    border-top: 1px solid #dee2e6;
+    /* Lighter separator */
+}
+
+.history-navigation button,
+.back-button-container button {
+    /* Style for back button on history page */
+    padding: 12px 25px;
+    font-size: 1.1em;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: #007bff;
+    /* Primary blue */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.history-navigation button:hover,
+.back-button-container button:hover {
+    background-color: #0056b3;
+    /* Darker blue */
+    transform: translateY(-2px);
+}
+
+
+/* Styles for history.html */
+
+.history-page-container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.history-section {
+    background-color: #f9fafb;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.history-section h2 {
+    border-bottom: 1px solid #e0e6ed;
+    padding-bottom: 10px;
+    margin-top: 0;
+    font-size: 1.3em;
+    color: #34495e;
+}
+
+.history-section ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.history-section li {
+    padding: 10px 5px;
+    /* Increased padding */
+    border-bottom: 1px dashed #e7e9ec;
+    /* Lighter dashed border */
+    font-size: 0.95em;
+    display: flex;
+    /* For better alignment if needed */
+    justify-content: space-between;
+    /* Example for multi-part list items */
+    flex-wrap: wrap;
+    /* Allow wrapping */
+}
+
+.history-section li:last-child {
+    border-bottom: none;
+}
+
+.history-section li .category-name {
+    font-weight: 500;
+}
+
+.history-section li .usage-count {
+    font-weight: 600;
+    color: #007bff;
+}
+
+.history-section li .log-details {
+    font-size: 0.9em;
+    color: #555;
+}
+
+.history-section li .log-timestamp {
+    font-size: 0.8em;
+    color: #777;
+    margin-left: 10px;
+}
+
+.back-button-container {
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+
+/* Responsive adjustments */
+
+@media (max-width: 768px) {
+    .kart-buttons-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 12px;
+    }
+    .app-container,
+    .history-page-container {
+        margin: 10px;
+        padding: 15px;
+    }
+    h1 {
+        font-size: 1.6em;
+    }
+    .category-title {
+        font-size: 1.3em;
+    }
+    .popup-content {
+        padding: 20px;
+    }
+    .popup-content button {
+        padding: 10px 18px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) {
+    .kart-buttons-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        /* Smaller buttons for very small screens */
+        gap: 10px;
+    }
+    .kart-button {
+        min-height: 70px;
+        font-size: 0.85em;
+    }
+    .kart-name {
+        font-size: 0.95em;
+    }
+    .kart-price {
+        font-size: 0.75em;
+    }
+    .kart-timer {
+        font-size: 0.85em;
+    }
 }
