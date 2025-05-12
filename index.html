@@ -4,77 +4,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kart Rental Management</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Base styles for all kart buttons */
-        
-        .kart-button {
-            @apply font-bold py-2 px-4 rounded m-1 transition-colors duration-200 inline-flex items-baseline text-white;
-            /* Default text white */
-        }
-        /* Styling for the timer/status text span inside buttons */
-        
-        .timer-display {
-            @apply text-xs ml-1;
-            /* Smaller text, slight margin */
-        }
-        /* Optional: Add pulse animation class if needed */
-        
-        .animate-pulse {
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: .5;
-            }
-        }
-    </style>
+    <title>Go-Kart Rental Manager</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="bg-gray-100 p-4">
+<body>
+    <h1>Go-Kart Rental Dashboard</h1>
 
-    <h1 class="text-3xl font-bold text-center mb-6">Kart Rental Status</h1>
-
-    <div id="kart-container" class="container mx-auto space-y-6">
+    <div id="kart-categories">
     </div>
 
-    <div id="duration-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded shadow-lg max-w-sm w-full mx-auto text-center">
-            <h3 class="text-lg font-medium mb-4">Select Rental Duration for Kart <span id="duration-kart-id" class="font-bold"></span></h3>
-            <input type="hidden" id="duration-modal-kart-id-hidden">
-            <button id="duration-30s" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2 mb-2">30 sec (Test)</button>
-            <button id="duration-30m" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 mb-2">30 min</button>
-            <button id="duration-1h" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-2">1 hour</button>
-            <button id="duration-cancel" class="mt-4 text-gray-500 hover:text-gray-700 text-sm block mx-auto">Cancel</button>
+    <div id="rental-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h3 id="popup-kart-id">Kart ?</h3>
+            <p>Select rental duration:</p>
+            <button id="popup-30min"></button>
+            <button id="popup-1h"></button>
+            <button onclick="closePopup('rental-popup')">Cancel</button>
         </div>
     </div>
 
-    <div id="return-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded shadow-lg max-w-sm w-full mx-auto text-center">
-            <h3 class="text-lg font-medium mb-4">Kart <span id="return-kart-id" class="font-bold"></span> Time Expired!</h3>
-            <p class="mb-4">Has the kart been returned?</p>
-            <input type="hidden" id="return-modal-kart-id-hidden">
-            <button id="return-yes" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">Yes</button>
-            <button id="return-no" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">No (Start Overtime)</button>
+    <div id="return-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h3 id="return-kart-id">Kart ?</h3>
+            <p>A fost returnat kartul? (Has the kart been returned?)</p>
+            <button id="return-yes">Da (Yes)</button>
+            <button id="return-no">Nu (No)</button>
         </div>
     </div>
 
-    <div id="overtime-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center p-4">
-        <div class="bg-white p-6 rounded shadow-lg max-w-sm w-full mx-auto text-center">
-            <h3 class="text-lg font-medium mb-4">Kart <span id="overtime-kart-id" class="font-bold"></span> Overtime</h3>
-            <p class="mb-4">Total Overtime: <span id="overtime-duration" class="font-bold text-xl">00:00:00</span></p>
-            <input type="hidden" id="overtime-modal-kart-id-hidden">
-            <button id="overtime-ok" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">OK (Mark as Returned)</button>
-        </div>
-    </div>
-
-    <script src="app.js" defer></script>
+    <script src="script.js"></script>
 </body>
 
 </html>
