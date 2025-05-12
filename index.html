@@ -1,35 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go-Kart Rental Manager</title>
+    <title>Manager Închirieri Go-Kart</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <h1>Go-Kart Rental Dashboard</h1>
+    <div class="app-container">
+        <h1>Panou de Control Închirieri Go-Kart</h1>
 
-    <div id="kart-categories">
-    </div>
-
-    <div id="rental-popup" class="popup" style="display: none;">
-        <div class="popup-content">
-            <h3 id="popup-kart-id">Kart ?</h3>
-            <p>Select rental duration:</p>
-            <button id="popup-30min"></button>
-            <button id="popup-1h"></button>
-            <button onclick="closePopup('rental-popup')">Cancel</button>
+        <div id="kart-categories">
         </div>
-    </div>
 
-    <div id="return-popup" class="popup" style="display: none;">
-        <div class="popup-content">
-            <h3 id="return-kart-id">Kart ?</h3>
-            <p>A fost returnat kartul? (Has the kart been returned?)</p>
-            <button id="return-yes">Da (Yes)</button>
-            <button id="return-no">Nu (No)</button>
+        <div id="rental-popup" class="popup" style="display: none;">
+            <div class="popup-content">
+                <h3 id="popup-kart-id">Kart ...</h3>
+                <p>Selectați durata închirierii:</p>
+                <button id="popup-30min"></button>
+                <button id="popup-1h"></button>
+                <button class="cancel-button" onclick="closePopup('rental-popup')">Anulează</button>
+            </div>
+        </div>
+
+        <div id="return-popup" class="popup" style="display: none;">
+            <div class="popup-content">
+                <h3 id="return-kart-id">Kart ...</h3>
+                <p>A fost returnat kartul?</p>
+                <button id="return-yes">Da</button>
+                <button id="return-no">Nu</button>
+            </div>
+        </div>
+
+        <div class="history-navigation">
+            <button id="viewHistoryButton">Vezi Istoric Închirieri</button>
         </div>
     </div>
 
