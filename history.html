@@ -10,8 +10,13 @@
 
 <body>
     <div class="history-page-container">
-        <div class="back-button-container">
-            <button onclick="window.location.href='index.html'">&laquo; Înapoi la Panoul Principal</button>
+        <div class="controls-top-bar">
+            <div class="back-button-container">
+                <button onclick="window.location.href='index.html'">&laquo; Înapoi la Panoul Principal</button>
+            </div>
+            <div class="delete-history-container">
+                <button id="deleteHistoryButtonPage">Șterge Istoric</button>
+            </div>
         </div>
 
         <h1>Istoric și Statistici Închirieri</h1>
@@ -43,6 +48,13 @@
                 <li>Se încarcă...</li>
             </ul>
         </div>
+    </div>
+
+    <div id="delete-history-page-popup" class="popup" style="display: none;">
+        <div class="popup-content">
+            <h3>Șterge Istoric</h3>
+            <p>Sunteți sigur că doriți să ștergeți tot istoricul închirierilor?</p>
+            <button id="delete-history-page-yes">Da</button> <button id="delete-history-page-no">Nu</button> </div>
     </div>
 
     <script src="history_script.js"></script>
