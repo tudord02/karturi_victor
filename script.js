@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Data Definition ---
-    // Asigură-te că acest array `kartData` corespunde cu cel din fișierul tău local,
-    // inclusiv cu numele pe care le-ai modificat. Ordinea din `idents` va fi respectată.
     const kartData = [
         { category: "Basic Karts", idents: ["fara numar ×5", "00 ×1", "1", "2", "4", "5", "6", "8", "9", "10", "11", "12", "06"], price30: 20, price1h: 30 },
         { category: "New Steering Wheel – Large Karts", idents: ["42", "43", "55", "52", "47", "24", "26", "15", "25", "44", "13", "46"], price30: 25, price1h: 40 },
@@ -18,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let karts = {};
     const KART_STATE_KEY = 'goKartRentalState_v4';
     const RENTAL_HISTORY_KEY = 'goKartRentalHistory_v1';
-    let notificationPermission = 'default'; // Inițializează ca default pentru a verifica la încărcare
+    let notificationPermission = 'default'; // Inițializează ca default
 
     // Retrieve rental history from localStorage
     function getRentalHistory() {
@@ -39,13 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const now = Date.now();
         let rentalStartTime = kart.actualRentalStartTime || (now - durationMinutes * 60 * 1000);
         const rentalEntry = {
-            kartUniqueId: kart.id,
-            display: kart.display,
-            kartCategory: kart.category,
-            rentalStartTime: rentalStartTime,
-            rentalEndTime: now,
-            durationMinutes: durationMinutes,
-            pricePaid: pricePaid,
+            kartUniqueId: kart.id, display: kart.display, kartCategory: kart.category,
+            rentalStartTime: rentalStartTime, rentalEndTime: now,
+            durationMinutes: durationMinutes, pricePaid: pricePaid,
         };
         history.push(rentalEntry);
         saveRentalHistory(history);
@@ -70,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parsedState = JSON.parse(savedState);
                 for (const kartId in karts) {
                     if (parsedState[kartId]) {
-                        Object.assign(karts[kartId], parsedState[kartId]); // Merge saved properties
+                        Object.assign(karts[kartId], parsedState[kartId]);
                     }
                 }
             } catch (e) {
@@ -95,34 +89,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         const kartId = `${cat.category.replace(/\s+/g, '-').toLowerCase()}-${name.replace(/\s+/g, '-').toLowerCase()}-${i}`;
                         const displayName = `${name} ${i}`;
                         processedKarts[kartId] = {
-                            id: kartId,
-                            display: displayName,
-                            category: cat.category,
-                            price30: cat.price30,
-                            price1h: cat.price1h,
-                            status: 'available',
-                            rentalEndTime: null,
-                            stopwatchStartTime: null,
-                            actualRentalStartTime: null,
-                            intendedDuration: null,
-                            intendedPrice: null
+                            id: kartId, display: displayName, category: cat.category,
+                            price30: cat.price30, price1h: cat.price1h,
+                            status: 'available', rentalEndTime: null, stopwatchStartTime: null,
+                            actualRentalStartTime: null, intendedDuration: null, intendedPrice: null
                         };
                     }
                 } else {
                     const kartId = `${cat.category.replace(/\s+/g, '-').toLowerCase()}-${ident.replace(/\s+/g, '-').toLowerCase()}`;
                     const displayName = ident;
                     processedKarts[kartId] = {
-                        id: kartId,
-                        display: displayName,
-                        category: cat.category,
-                        price30: cat.price30,
-                        price1h: cat.price1h,
-                        status: 'available',
-                        rentalEndTime: null,
-                        stopwatchStartTime: null,
-                        actualRentalStartTime: null,
-                        intendedDuration: null,
-                        intendedPrice: null
+                        id: kartId, display: displayName, category: cat.category,
+                        price30: cat.price30, price1h: cat.price1h,
+                        status: 'available', rentalEndTime: null, stopwatchStartTime: null,
+                        actualRentalStartTime: null, intendedDuration: null, intendedPrice: null
                     };
                 }
             });
@@ -136,9 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- UI Generation ---
     function createKartButtons() {
         const container = document.getElementById('kart-categories');
-        container.innerHTML = '';
+        container.innerHTML = ''; 
         const kartsByCategory = {};
-
+        
         Object.values(karts).forEach(kart => {
             if (!kartsByCategory[kart.category]) {
                 kartsByCategory[kart.category] = [];
@@ -163,79 +143,96 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.className = 'kart-button';
                 button.id = `kart-${kart.id}`;
                 button.dataset.kartId = kart.id;
-
                 const kartInfoDiv = document.createElement('div');
                 kartInfoDiv.className = 'kart-info';
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'kart-name';
                 nameSpan.textContent = kart.display;
                 kartInfoDiv.appendChild(nameSpan);
-
                 const priceSpan = document.createElement('span');
                 priceSpan.className = 'kart-price';
                 priceSpan.textContent = `${kart.price30} lei / 30min`;
                 kartInfoDiv.appendChild(priceSpan);
                 button.appendChild(kartInfoDiv);
-
                 const timerSpan = document.createElement('span');
                 timerSpan.className = 'kart-timer';
                 timerSpan.id = `timer-${kart.id}`;
                 button.appendChild(timerSpan);
-
                 button.addEventListener('click', () => handleKartClick(kart.id));
                 gridDiv.appendChild(button);
             });
             categoryDiv.appendChild(gridDiv);
             container.appendChild(categoryDiv);
         });
-        updateAllButtonStates();
+        updateAllButtonStates(); 
     }
 
     // --- Notification Logic ---
     async function requestNotificationPermission() {
         if (!('Notification' in window)) {
+            alert("Acest browser nu suportă notificări desktop.");
             console.log("Acest browser nu suportă notificări desktop.");
             notificationPermission = "denied";
-            return;
+            return "denied";
         }
-        if (notificationPermission === 'default') {
-            try {
-                const permission = await Notification.requestPermission();
-                notificationPermission = permission;
-                if (permission === 'granted') {
-                    console.log("Permisiune pentru notificări acordată.");
-                } else {
-                    console.log("Permisiune pentru notificări refuzată.");
-                }
-            } catch (error) {
-                console.error("Eroare la cererea permisiunii pentru notificări:", error);
-                notificationPermission = "denied";
+        // Verifică starea curentă înainte de a cere, pentru a nu deranja inutil
+        if (Notification.permission === 'granted') {
+            notificationPermission = 'granted';
+            console.log("Permisiune pentru notificări deja acordată.");
+            return "granted";
+        }
+        if (Notification.permission === 'denied') {
+            notificationPermission = 'denied';
+            alert("Notificările sunt blocate. Verificați setările browser-ului.");
+            console.log("Permisiune pentru notificări refuzată anterior.");
+            return "denied";
+        }
+        // Notification.permission este 'default', deci putem cere
+        try {
+            const permission = await Notification.requestPermission();
+            notificationPermission = permission; // Actualizează starea globală
+            if (permission === 'granted') {
+                console.log("Permisiune pentru notificări acordată de utilizator.");
+                alert("Notificările au fost activate!");
+            } else {
+                console.log("Permisiune pentru notificări refuzată de utilizator.");
+                alert("Ați refuzat permisiunea pentru notificări.");
             }
+            return permission;
+        } catch (error) {
+            console.error("Eroare la cererea permisiunii pentru notificări:", error);
+            notificationPermission = "denied"; // Presupunem refuz în caz de eroare
+            return "denied";
         }
     }
 
     function sendTimerNotification(kart) {
         if (notificationPermission !== 'granted') {
-            console.log("Permisiunea pentru notificări nu este acordată. Nu se poate trimite notificarea.");
+            console.log("Permisiunea pentru notificări nu este 'granted'. Nu se poate trimite notificarea pentru kartul: " + kart.display);
+            // Opțional: un mesaj discret în UI că notificările nu sunt active
             return;
         }
         const notificationTitle = "Timpul a expirat!";
         const notificationBody = `Kartul "${kart.display}" (${kart.category}) și-a terminat cursa.`;
         const options = {
             body: notificationBody,
-            tag: `kart-timer-${kart.id}`,
-            renotify: true,
+            tag: `kart-timer-${kart.id}`, 
+            renotify: true, 
+            // icon: 'path/to/your/icon.png' // Adaugă un URL către o imagine pentru iconiță
         };
         try {
             const notification = new Notification(notificationTitle, options);
-            if ('vibrate' in navigator) {
+            if ('vibrate' in navigator) { 
                 navigator.vibrate([200, 100, 200, 100, 200]);
             }
-            notification.onclick = () => {
+            notification.onclick = () => { 
                 window.focus();
+                // Poți adăuga aici și închiderea notificării dacă dorești
+                // notification.close();
             };
+            console.log("Notificare trimisă pentru kartul: " + kart.display);
         } catch (error) {
-            console.error("Eroare la crearea notificării:", error);
+            console.error("Eroare la crearea notificării pentru kartul " + kart.display + ":", error);
         }
     }
 
@@ -263,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let priceForLog = kart.intendedPrice;
         if (kart.status === 'rented' && kart.actualRentalStartTime) {
             const elapsedMs = Date.now() - kart.actualRentalStartTime;
-            actualDurationMinutes = Math.max(1, Math.round(elapsedMs / 60000));
+            actualDurationMinutes = Math.max(1, Math.round(elapsedMs / 60000)); 
             elapsedTimeMessage = `Închiriere finalizată devreme. Timp utilizat: aprox. ${actualDurationMinutes} min. Preț: ${priceForLog} lei.`;
         } else if (kart.status === 'overdue' && kart.actualRentalStartTime && kart.stopwatchStartTime) {
             const overdueMs = Date.now() - kart.stopwatchStartTime;
@@ -285,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const elapsedTimePopup = document.getElementById('elapsed-time-popup');
     let currentPopupKartId = null;
 
-    window.closePopup = function(popupId) {
+    window.closePopup = function(popupId) { 
         const popupElement = document.getElementById(popupId);
         if (popupElement) popupElement.style.display = 'none';
         currentPopupKartId = null;
@@ -306,28 +303,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn30Min = document.getElementById('popup-30min');
         btn30Min.textContent = `30 min (${kart.price30} lei)`;
         btn30Min.onclick = () => startRental(currentPopupKartId, 30, kart.price30);
-
+        
         const btn1h = document.getElementById('popup-1h');
         btn1h.textContent = `1 oră (${kart.price1h} lei)`;
         btn1h.onclick = () => startRental(currentPopupKartId, 60, kart.price1h);
 
-        // RE-ADD 30-second test button specifically for "Kart 1" (ID: basic-karts-1)
-        // Ensure your kart ID for "Kart 1" in kartData corresponds to 'basic-karts-1'
-        if (kart.id === 'basic-karts-1') {
+        if (kart.id === 'basic-karts-1') { // ID-ul specific pentru Kartul 1
             const testButton30Sec = document.createElement('button');
             testButton30Sec.id = 'popup-30sec-test';
             testButton30Sec.textContent = '30 sec (Test - 1 leu)';
-            testButton30Sec.onclick = () => startRental(currentPopupKartId, 0.5, 1); // 0.5 minutes = 30 seconds
-
-            // Optional: Style the test button (can also be done via CSS class)
-            // This style is consistent with the one defined in style.css for #popup-30sec-test
-            testButton30Sec.style.backgroundColor = '#ffc107';
-            testButton30Sec.style.color = '#212529';
+            testButton30Sec.onclick = () => startRental(currentPopupKartId, 0.5, 1); 
+            
+            testButton30Sec.style.backgroundColor = '#ffc107'; 
+            testButton30Sec.style.color = '#212529'; 
 
             const cancelButton = popupContent.querySelector('.cancel-button');
-            popupContent.insertBefore(testButton30Sec, cancelButton);
+            popupContent.insertBefore(testButton30Sec, cancelButton); 
         }
-
+        
         rentalPopup.style.display = 'flex';
     }
 
@@ -360,35 +353,36 @@ document.addEventListener('DOMContentLoaded', () => {
     async function startRental(kartId, durationMinutes, pricePaid) {
         const kart = karts[kartId];
         if (!kart || kart.status !== 'available') return;
-
-        if (notificationPermission === 'default') {
-            await requestNotificationPermission();
-        }
+        
+        // Nu mai cerem permisiunea aici, se va face prin butonul dedicat
+        // if (notificationPermission === 'default') {
+        // await requestNotificationPermission(); 
+        // }
 
         const now = Date.now();
         kart.status = 'rented';
         kart.actualRentalStartTime = now;
         kart.rentalEndTime = now + durationMinutes * 60 * 1000;
-        kart.stopwatchStartTime = null;
+        kart.stopwatchStartTime = null; 
         kart.intendedDuration = durationMinutes;
         kart.intendedPrice = pricePaid;
         updateButtonState(kartId);
         saveState();
         closePopup('rental-popup');
     }
-
+    
     function handleReturnConfirmation(kartId, returned) {
         const kart = karts[kartId];
         if (!kart || kart.status !== 'pending_return') {
             closePopup('return-popup');
             return;
         }
-        if (returned) {
+        if (returned) { 
             showElapsedTimeAndReset(kartId);
-        } else {
+        } else { 
             kart.status = 'overdue';
-            kart.stopwatchStartTime = Date.now();
-            kart.rentalEndTime = null;
+            kart.stopwatchStartTime = Date.now(); 
+            kart.rentalEndTime = null; 
             updateButtonState(kartId);
             saveState();
         }
@@ -401,8 +395,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (shouldLog) {
             const durationToLog = typeof loggedDuration !== 'undefined' ? loggedDuration : kart.intendedDuration;
             const priceToLog = typeof loggedPrice !== 'undefined' ? loggedPrice : kart.intendedPrice;
-            if (durationToLog > 0) {
-                logRentalToHistory(kartId, durationToLog, priceToLog);
+            if (durationToLog > 0) { 
+                 logRentalToHistory(kartId, durationToLog, priceToLog);
             }
         }
         kart.status = 'available';
@@ -431,12 +425,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!button || !kart || !timerDisplay) return;
 
         button.classList.remove('available', 'rented', 'overdue', 'pending_return');
-        button.style.animation = '';
-        void button.offsetWidth;
+        button.style.animation = ''; 
+        void button.offsetWidth; 
 
         const priceDisplay = button.querySelector('.kart-price');
-        timerDisplay.textContent = '';
-        if (priceDisplay) priceDisplay.style.display = 'block';
+        timerDisplay.textContent = ''; 
+        if (priceDisplay) priceDisplay.style.display = 'block'; 
 
         switch (kart.status) {
             case 'available':
@@ -445,31 +439,34 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'rented':
                 button.classList.add('rented');
                 const remainingTime = kart.rentalEndTime - Date.now();
-                timerDisplay.textContent = `-${formatTime(remainingTime)}`;
-                if (priceDisplay) priceDisplay.style.display = 'none';
+                timerDisplay.textContent = `-${formatTime(remainingTime)}`; 
+                if (priceDisplay) priceDisplay.style.display = 'none'; 
                 if (remainingTime <= 0 && kart.rentalEndTime !== null) {
-                    if (kart.status !== 'pending_return') {
+                    if (kart.status !== 'pending_return') { 
                         kart.status = 'pending_return';
-                        saveState();
-                        requestNotificationPermission().then(() => {
+                        saveState(); 
+                        // Trimite notificarea doar dacă permisiunea este acordată
+                        if (notificationPermission === 'granted') {
                             sendTimerNotification(kart);
-                        });
-                        openReturnPopup(kart.id);
-                        updateButtonState(kart.id);
+                        } else {
+                            console.log("Notificare nepermisă pentru kartul " + kart.display + " la expirare.");
+                        }
+                        openReturnPopup(kart.id); 
+                        updateButtonState(kart.id); 
                     }
                 }
                 break;
             case 'pending_return':
-                button.classList.add('rented');
-                timerDisplay.textContent = 'CONFIRM?';
+                button.classList.add('rented'); 
+                timerDisplay.textContent = 'CONFIRM?'; 
                 if (priceDisplay) priceDisplay.style.display = 'none';
                 break;
             case 'overdue':
                 button.classList.add('overdue');
                 const overdueTime = Date.now() - kart.stopwatchStartTime;
-                timerDisplay.textContent = `+${formatTime(overdueTime)}`;
+                timerDisplay.textContent = `+${formatTime(overdueTime)}`; 
                 if (priceDisplay) priceDisplay.style.display = 'none';
-                button.style.animation = 'blink 1.3s linear infinite';
+                button.style.animation = 'blink 1.3s linear infinite'; 
                 break;
         }
     }
@@ -487,17 +484,18 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.values(karts).forEach(kart => {
             if (kart.status === 'rented' && kart.rentalEndTime !== null) {
                 if (now >= kart.rentalEndTime) {
-                    if (kart.status !== 'pending_return') {
+                    if (kart.status !== 'pending_return') { 
                         kart.status = 'pending_return';
                         needsSave = true;
-                        openReturnPopup(kart.id);
-                        updateButtonState(kart.id);
+                        // Notificarea este gestionată în updateButtonState acum
+                        openReturnPopup(kart.id); 
+                        updateButtonState(kart.id); 
                     }
                 } else {
-                    updateButtonState(kart.id);
+                    updateButtonState(kart.id); 
                 }
             } else if (kart.status === 'overdue') {
-                updateButtonState(kart.id);
+                updateButtonState(kart.id); 
             }
         });
         if (needsSave) {
@@ -512,23 +510,42 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'history.html';
         });
     }
-
-    // --- Initialization ---
-    if ('Notification' in window) {
-        notificationPermission = Notification.permission; // Preia starea actuală la încărcare
-        if (notificationPermission === 'granted') {
-            console.log("Permisiunea pentru notificări este deja acordată.");
-        } else if (notificationPermission === 'denied') {
-            console.log("Permisiunea pentru notificări este refuzată.");
-        } else { // default
-            console.log("Permisiunea pentru notificări este 'default'. Va fi cerută la nevoie.");
+    
+    // --- Buton Activare Notificări ---
+    const enableNotificationsBtn = document.getElementById('enableNotificationsButton');
+    if (enableNotificationsBtn) {
+        // Inițial, verifică starea permisiunii și actualizează vizibilitatea butonului
+        if ('Notification' in window) {
+            if (Notification.permission === 'granted') {
+                enableNotificationsBtn.style.display = 'none'; // Ascunde dacă e deja acordată
+                notificationPermission = 'granted'; // Setează starea globală
+                 console.log("Permisiunea pentru notificări este deja acordată la încărcare.");
+            } else if (Notification.permission === 'denied') {
+                enableNotificationsBtn.style.display = 'none'; // Ascunde dacă e refuzată
+                notificationPermission = 'denied';
+                 console.log("Permisiunea pentru notificări este refuzată la încărcare.");
+            } else { // default
+                notificationPermission = 'default';
+                 console.log("Permisiunea pentru notificări este 'default' la încărcare. Buton vizibil.");
+            }
+        } else { // Notificări nu sunt suportate
+            enableNotificationsBtn.style.display = 'none';
+            notificationPermission = 'denied';
+            console.log("Browser-ul nu suportă notificări, buton ascuns.");
         }
-    } else {
-        notificationPermission = "denied"; // Notifications not supported
-        console.log("Acest browser nu suportă notificări desktop.");
+
+        enableNotificationsBtn.addEventListener('click', async () => {
+            const permissionResult = await requestNotificationPermission();
+            // Ascunde butonul dacă permisiunea nu mai este 'default' (adică e 'granted' sau 'denied')
+            if (permissionResult !== 'default') {
+                 enableNotificationsBtn.style.display = 'none';
+            }
+        });
     }
 
-    loadState();
-    createKartButtons();
-    setInterval(tick, 1000);
+
+    // --- Initialization ---
+    loadState(); 
+    createKartButtons(); 
+    setInterval(tick, 1000); 
 });
