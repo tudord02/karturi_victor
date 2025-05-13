@@ -141,6 +141,7 @@ h1 {
 }
 
 .kart-button.rented {
+    /* Also used for pending_return visually */
     background-color: #fee2e2;
     /* Light red */
     color: #991b1b;
@@ -179,6 +180,21 @@ h1 {
     }
 }
 
+
+/* Optional: Pulse animation for pending_return if desired
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+    70% { transform: scale(1.02); box-shadow: 0 0 5px 10px rgba(255, 193, 7, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
+.kart-button.pending_return {
+    background-color: #ffecb3; // Light yellow
+    color: #795548;
+    border-color: #ffe082;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+*/
+
 .kart-timer {
     font-size: 0.95em;
     font-weight: 700;
@@ -193,17 +209,25 @@ h1 {
 
 .popup {
     display: none;
+    /* Hidden by default */
     position: fixed;
+    /* Stay in place */
     z-index: 1000;
+    /* Sit on top */
     left: 0;
     top: 0;
     width: 100%;
+    /* Full width */
     height: 100%;
+    /* Full height */
     overflow: auto;
+    /* Enable scroll if needed */
     background-color: rgba(0, 0, 0, 0.55);
-    /* Slightly darker overlay */
+    /* Black w/ opacity */
     align-items: center;
+    /* Vertical center */
     justify-content: center;
+    /* Horizontal center */
     padding: 15px;
     /* Padding for smaller screens */
 }
@@ -215,7 +239,9 @@ h1 {
     /* Increased padding */
     border: 1px solid #adb5bd;
     width: 90%;
+    /* Responsive width */
     max-width: 480px;
+    /* Max width for larger screens */
     border-radius: 10px;
     text-align: center;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -250,16 +276,33 @@ h1 {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
+
+/* Specific popup button styles */
+
 #popup-30min,
-#return-yes {
+#return-yes,
+
+/* From return-popup */
+
+#elapsed-time-ok,
+
+/* From elapsed-time-popup */
+
+#delete-history-page-yes
+/* From history page delete popup */
+
+{
     background-color: #28a745;
-    /* Bootstrap green */
+    /* Bootstrap green for confirm/proceed */
     color: white;
 }
 
 #popup-30min:hover,
-#return-yes:hover {
+#return-yes:hover,
+#elapsed-time-ok:hover,
+#delete-history-page-yes:hover {
     background-color: #218838;
+    /* Darker green */
 }
 
 #popup-1h {
@@ -270,19 +313,30 @@ h1 {
 
 #popup-1h:hover {
     background-color: #0056b3;
+    /* Darker blue */
 }
 
-#return-no {
+#return-no,
+
+/* From return-popup */
+
+#delete-history-page-no
+/* From history page delete popup */
+
+{
     background-color: #dc3545;
-    /* Bootstrap red */
+    /* Bootstrap red for decline/cancel dangerous action */
     color: white;
 }
 
-#return-no:hover {
+#return-no:hover,
+#delete-history-page-no:hover {
     background-color: #c82333;
+    /* Darker red */
 }
 
 .popup-content button.cancel-button {
+    /* For rental-popup cancel */
     background-color: #6c757d;
     /* Bootstrap gray */
     color: white;
@@ -290,12 +344,14 @@ h1 {
 
 .popup-content button.cancel-button:hover {
     background-color: #5a6268;
+    /* Darker gray */
 }
 
 
-/* History Navigation Button on index.html */
+/* History Navigation Button on index.html & Back Button on history.html */
 
 .history-navigation {
+    /* Container for button on index.html */
     text-align: center;
     margin-top: 40px;
     padding-top: 25px;
@@ -304,8 +360,13 @@ h1 {
 }
 
 .history-navigation button,
-.back-button-container button {
-    /* Style for back button on history page */
+
+/* Button on index.html */
+
+.back-button-container button
+/* Button on history.html */
+
+{
     padding: 12px 25px;
     font-size: 1.1em;
     font-weight: 500;
@@ -327,7 +388,40 @@ h1 {
 }
 
 
-/* Styles for history.html */
+/* Delete History Button on history.html - specific styling */
+
+#deleteHistoryButtonPage {
+    padding: 12px 25px;
+    /* Same as .back-button-container button */
+    font-size: 1.1em;
+    /* Same */
+    font-weight: 500;
+    /* Same */
+    cursor: pointer;
+    /* Same */
+    color: white;
+    /* Same */
+    border: none;
+    /* Same */
+    border-radius: 6px;
+    /* Same */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    /* Same */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Same */
+    background-color: #dc3545;
+    /* Specific: Bootstrap danger red */
+}
+
+#deleteHistoryButtonPage:hover {
+    background-color: #c82333;
+    /* Specific: Darker red for hover */
+    transform: translateY(-2px);
+    /* Same lift effect */
+}
+
+
+/* Styles for history.html content */
 
 .history-page-container {
     max-width: 900px;
@@ -337,6 +431,20 @@ h1 {
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
+.controls-top-bar {
+    /* Container for back and delete buttons on history.html */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+
+/* .back-button-container is styled above with .history-navigation button */
+
+
+/* .delete-history-container is just a div, button inside is #deleteHistoryButtonPage */
 
 .history-section {
     background-color: #f9fafb;
@@ -353,6 +461,8 @@ h1 {
     margin-top: 0;
     font-size: 1.3em;
     color: #34495e;
+    text-align: left;
+    /* Align section titles to the left */
 }
 
 .history-section ul {
@@ -362,16 +472,11 @@ h1 {
 
 .history-section li {
     padding: 10px 5px;
-    /* Increased padding */
     border-bottom: 1px dashed #e7e9ec;
-    /* Lighter dashed border */
     font-size: 0.95em;
     display: flex;
-    /* For better alignment if needed */
     justify-content: space-between;
-    /* Example for multi-part list items */
     flex-wrap: wrap;
-    /* Allow wrapping */
 }
 
 .history-section li:last-child {
@@ -390,17 +495,17 @@ h1 {
 .history-section li .log-details {
     font-size: 0.9em;
     color: #555;
+    flex-basis: 70%;
+    /* Give more space to details */
 }
 
 .history-section li .log-timestamp {
     font-size: 0.8em;
     color: #777;
     margin-left: 10px;
-}
-
-.back-button-container {
-    margin-bottom: 30px;
-    text-align: left;
+    flex-basis: 25%;
+    /* Space for timestamp */
+    text-align: right;
 }
 
 
@@ -428,6 +533,18 @@ h1 {
     .popup-content button {
         padding: 10px 18px;
         font-size: 0.9em;
+        margin: 8px 5px;
+        /* Adjust margin for smaller screens */
+    }
+    .history-section li .log-details,
+    .history-section li .log-timestamp {
+        flex-basis: 100%;
+        /* Stack details and timestamp on small screens */
+        text-align: left;
+        margin-left: 0;
+    }
+    .history-section li .log-timestamp {
+        margin-top: 5px;
     }
 }
 
@@ -449,5 +566,18 @@ h1 {
     }
     .kart-timer {
         font-size: 0.85em;
+    }
+    .controls-top-bar {
+        flex-direction: column;
+        /* Stack buttons on very small screens */
+        gap: 10px;
+    }
+    .controls-top-bar .back-button-container,
+    .controls-top-bar .delete-history-container {
+        width: 100%;
+    }
+    .controls-top-bar button {
+        width: 100%;
+        text-align: center;
     }
 }
