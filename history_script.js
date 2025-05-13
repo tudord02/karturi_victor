@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (yesButtonPage && deletePopupPage) {
         yesButtonPage.addEventListener('click', () => {
             localStorage.removeItem(RENTAL_HISTORY_KEY); // Delete history from localStorage
+            alert("Istoricul închirierilor a fost șters."); // User notification
             deletePopupPage.style.display = 'none'; // Close popup
             loadAndDisplayAllHistory(); // Refresh the displayed history sections
         });
