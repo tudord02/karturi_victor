@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Data Definition ---
+    // Asigură-te că acest array `kartData` corespunde cu cel din fișierul tău local,
+    // inclusiv cu numele pe care le-ai modificat. Ordinea din `idents` va fi respectată.
     const kartData = [
         { category: "Basic Karts", idents: ["fara numar ×5", "00 ×1", "1", "2", "4", "5", "6", "8", "9", "10", "11", "12", "06"], price30: 20, price1h: 30 },
         { category: "New Steering Wheel – Large Karts", idents: ["42", "43", "55", "52", "47", "24", "26", "15", "25", "44", "13", "46"], price30: 25, price1h: 40 },
@@ -16,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let karts = {};
     const KART_STATE_KEY = 'goKartRentalState_v4';
     const RENTAL_HISTORY_KEY = 'goKartRentalHistory_v1';
-    let notificationPermission = Notification.permission; // Store current permission status
+    let notificationPermission = 'default'; // Inițializează ca default pentru a verifica la încărcare
 
     // Retrieve rental history from localStorage
     function getRentalHistory() {
@@ -68,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parsedState = JSON.parse(savedState);
                 for (const kartId in karts) {
                     if (parsedState[kartId]) {
-                        Object.assign(karts[kartId], parsedState[kartId]);
+                        Object.assign(karts[kartId], parsedState[kartId]); // Merge saved properties
                     }
                 }
             } catch (e) {
@@ -136,11 +138,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('kart-categories');
         container.innerHTML = '';
         const kartsByCategory = {};
+
         Object.values(karts).forEach(kart => {
-            if (!kartsByCategory[kart.category]) kartsByCategory[kart.category] = [];
+            if (!kartsByCategory[kart.category]) {
+                kartsByCategory[kart.category] = [];
+            }
             kartsByCategory[kart.category].push(kart);
         });
+
         const sortedCategories = Object.keys(kartsByCategory).sort();
+
         sortedCategories.forEach(categoryName => {
             const categoryDiv = document.createElement('div');
             categoryDiv.className = 'category-container';
@@ -150,31 +157,31 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryDiv.appendChild(title);
             const gridDiv = document.createElement('div');
             gridDiv.className = 'kart-buttons-grid';
-            kartsByCategory[categoryName].sort((a, b) => {
-                const numA = parseInt(a.display.match(/\d+/));
-                const numB = parseInt(b.display.match(/\d+/));
-                if (!isNaN(numA) && !isNaN(numB) && numA !== numB) return numA - numB;
-                return a.display.localeCompare(b.display);
-            }).forEach(kart => {
+
+            kartsByCategory[categoryName].forEach(kart => {
                 const button = document.createElement('button');
                 button.className = 'kart-button';
                 button.id = `kart-${kart.id}`;
                 button.dataset.kartId = kart.id;
+
                 const kartInfoDiv = document.createElement('div');
                 kartInfoDiv.className = 'kart-info';
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'kart-name';
                 nameSpan.textContent = kart.display;
                 kartInfoDiv.appendChild(nameSpan);
+
                 const priceSpan = document.createElement('span');
                 priceSpan.className = 'kart-price';
                 priceSpan.textContent = `${kart.price30} lei / 30min`;
                 kartInfoDiv.appendChild(priceSpan);
                 button.appendChild(kartInfoDiv);
+
                 const timerSpan = document.createElement('span');
                 timerSpan.className = 'kart-timer';
                 timerSpan.id = `timer-${kart.id}`;
                 button.appendChild(timerSpan);
+
                 button.addEventListener('click', () => handleKartClick(kart.id));
                 gridDiv.appendChild(button);
             });
@@ -185,11 +192,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Notification Logic ---
-    // Request permission for notifications
     async function requestNotificationPermission() {
         if (!('Notification' in window)) {
             console.log("Acest browser nu suportă notificări desktop.");
-            notificationPermission = "denied"; // Mark as denied if not supported
+            notificationPermission = "denied";
             return;
         }
         if (notificationPermission === 'default') {
@@ -208,46 +214,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Send a notification when a timer expires
     function sendTimerNotification(kart) {
         if (notificationPermission !== 'granted') {
             console.log("Permisiunea pentru notificări nu este acordată. Nu se poate trimite notificarea.");
             return;
         }
-
         const notificationTitle = "Timpul a expirat!";
         const notificationBody = `Kartul "${kart.display}" (${kart.category}) și-a terminat cursa.`;
-        // const iconUrl = 'path/to/your/icon.png'; // Optional: add an icon URL
-
         const options = {
             body: notificationBody,
-            // icon: iconUrl, // Uncomment if you have an icon
-            tag: `kart-timer-${kart.id}`, // Tag to prevent multiple notifications for the same kart if event fires rapidly
-            renotify: true, // If a notification with the same tag exists, it will be replaced and re-alert the user
+            tag: `kart-timer-${kart.id}`,
+            renotify: true,
         };
-
         try {
             const notification = new Notification(notificationTitle, options);
-
-            // Vibrate the device, if supported
             if ('vibrate' in navigator) {
-                navigator.vibrate([200, 100, 200, 100, 200]); // Pattern: vibrate, pause, vibrate, pause, vibrate
+                navigator.vibrate([200, 100, 200, 100, 200]);
             }
-
-            // Optional: Close notification automatically after some time
-            // setTimeout(() => notification.close(), 10000); // Close after 10 seconds
-
             notification.onclick = () => {
-                // Focus the window/tab when notification is clicked
                 window.focus();
-                // Optionally, you could also close the notification on click
-                // notification.close();
             };
         } catch (error) {
             console.error("Eroare la crearea notificării:", error);
         }
     }
-
 
     // --- Event Handlers & Core Logic ---
     function handleKartClick(kartId) {
@@ -305,11 +295,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const kart = karts[kartId];
         if (!kart) return;
         currentPopupKartId = kartId;
+
+        const popupContent = rentalPopup.querySelector('.popup-content');
+        const existingTestButton = popupContent.querySelector('#popup-30sec-test');
+        if (existingTestButton) {
+            existingTestButton.remove();
+        }
+
         document.getElementById('popup-kart-id').textContent = `Kart ${kart.display}`;
-        document.getElementById('popup-30min').textContent = `30 min (${kart.price30} lei)`;
-        document.getElementById('popup-1h').textContent = `1 oră (${kart.price1h} lei)`;
-        document.getElementById('popup-30min').onclick = () => startRental(currentPopupKartId, 30, kart.price30);
-        document.getElementById('popup-1h').onclick = () => startRental(currentPopupKartId, 60, kart.price1h);
+        const btn30Min = document.getElementById('popup-30min');
+        btn30Min.textContent = `30 min (${kart.price30} lei)`;
+        btn30Min.onclick = () => startRental(currentPopupKartId, 30, kart.price30);
+
+        const btn1h = document.getElementById('popup-1h');
+        btn1h.textContent = `1 oră (${kart.price1h} lei)`;
+        btn1h.onclick = () => startRental(currentPopupKartId, 60, kart.price1h);
+
+        // RE-ADD 30-second test button specifically for "Kart 1" (ID: basic-karts-1)
+        // Ensure your kart ID for "Kart 1" in kartData corresponds to 'basic-karts-1'
+        if (kart.id === 'basic-karts-1') {
+            const testButton30Sec = document.createElement('button');
+            testButton30Sec.id = 'popup-30sec-test';
+            testButton30Sec.textContent = '30 sec (Test - 1 leu)';
+            testButton30Sec.onclick = () => startRental(currentPopupKartId, 0.5, 1); // 0.5 minutes = 30 seconds
+
+            // Optional: Style the test button (can also be done via CSS class)
+            // This style is consistent with the one defined in style.css for #popup-30sec-test
+            testButton30Sec.style.backgroundColor = '#ffc107';
+            testButton30Sec.style.color = '#212529';
+
+            const cancelButton = popupContent.querySelector('.cancel-button');
+            popupContent.insertBefore(testButton30Sec, cancelButton);
+        }
+
         rentalPopup.style.display = 'flex';
     }
 
@@ -339,11 +357,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Rental Logic ---
-    async function startRental(kartId, durationMinutes, pricePaid) { // Made async for permission request
+    async function startRental(kartId, durationMinutes, pricePaid) {
         const kart = karts[kartId];
         if (!kart || kart.status !== 'available') return;
 
-        // Request notification permission when the first timer is set, if not already handled
         if (notificationPermission === 'default') {
             await requestNotificationPermission();
         }
@@ -412,12 +429,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const button = document.getElementById(`kart-${kartId}`);
         const timerDisplay = document.getElementById(`timer-${kartId}`);
         if (!button || !kart || !timerDisplay) return;
+
         button.classList.remove('available', 'rented', 'overdue', 'pending_return');
         button.style.animation = '';
         void button.offsetWidth;
+
         const priceDisplay = button.querySelector('.kart-price');
         timerDisplay.textContent = '';
         if (priceDisplay) priceDisplay.style.display = 'block';
+
         switch (kart.status) {
             case 'available':
                 button.classList.add('available');
@@ -430,11 +450,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (remainingTime <= 0 && kart.rentalEndTime !== null) {
                     if (kart.status !== 'pending_return') {
                         kart.status = 'pending_return';
-                        saveState(); // Save state before notification and popup
-                        requestNotificationPermission().then(() => { // Ensure permission is checked/requested
-                            sendTimerNotification(kart); // Send notification
+                        saveState();
+                        requestNotificationPermission().then(() => {
+                            sendTimerNotification(kart);
                         });
-                        openReturnPopup(kart.id); // Open in-app popup
+                        openReturnPopup(kart.id);
                         updateButtonState(kart.id);
                     }
                 }
@@ -470,11 +490,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (kart.status !== 'pending_return') {
                         kart.status = 'pending_return';
                         needsSave = true;
-                        // Notification and permission request are now handled in updateButtonState when status changes
-                        // This ensures it happens once when the state flips.
-                        // sendTimerNotification(kart); // Moved to updateButtonState
                         openReturnPopup(kart.id);
-                        updateButtonState(kart.id); // This will trigger the notification logic if needed
+                        updateButtonState(kart.id);
                     }
                 } else {
                     updateButtonState(kart.id);
@@ -497,14 +514,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Initialization ---
-    // Try to get notification permission on load, or at least check current status
-    // This is non-blocking. If user interacts later, permission will be asked then if still 'default'.
-    if ('Notification' in window && Notification.permission === 'default') {
-        // Optionally, you could have a button "Enable Notifications" to trigger this.
-        // For now, let's rely on it being requested when the first timer is set or expires.
-        console.log("Notification permission is default. Will ask when needed.");
+    if ('Notification' in window) {
+        notificationPermission = Notification.permission; // Preia starea actuală la încărcare
+        if (notificationPermission === 'granted') {
+            console.log("Permisiunea pentru notificări este deja acordată.");
+        } else if (notificationPermission === 'denied') {
+            console.log("Permisiunea pentru notificări este refuzată.");
+        } else { // default
+            console.log("Permisiunea pentru notificări este 'default'. Va fi cerută la nevoie.");
+        }
     } else {
-        notificationPermission = Notification.permission; // Update our tracked permission
+        notificationPermission = "denied"; // Notifications not supported
+        console.log("Acest browser nu suportă notificări desktop.");
     }
 
     loadState();
