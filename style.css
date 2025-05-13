@@ -140,8 +140,7 @@ h1 {
     color: #059669;
 }
 
-.kart-button.rented {
-    /* Also used for pending_return visually */
+.kart-button.rented { /* Also used for pending_return visually */
     background-color: #fee2e2;
     /* Light red */
     color: #991b1b;
@@ -261,22 +260,12 @@ h1 {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
-
 /* Specific popup button styles */
-
 #popup-30min,
-#return-yes,
-
-/* From return-popup */
-
-#elapsed-time-ok,
-
-/* From elapsed-time-popup */
-
-#delete-history-page-yes
-/* From history page delete popup */
-
-{
+#return-yes, /* From return-popup */
+#elapsed-time-ok, /* From elapsed-time-popup */
+#delete-history-page-yes /* From history page delete popup */
+ {
     background-color: #28a745;
     /* Bootstrap green for confirm/proceed */
     color: white;
@@ -286,8 +275,7 @@ h1 {
 #return-yes:hover,
 #elapsed-time-ok:hover,
 #delete-history-page-yes:hover {
-    background-color: #218838;
-    /* Darker green */
+    background-color: #218838; /* Darker green */
 }
 
 #popup-1h {
@@ -297,17 +285,11 @@ h1 {
 }
 
 #popup-1h:hover {
-    background-color: #0056b3;
-    /* Darker blue */
+    background-color: #0056b3; /* Darker blue */
 }
 
-#return-no,
-
-/* From return-popup */
-
-#delete-history-page-no
-/* From history page delete popup */
-
+#return-no, /* From return-popup */
+#delete-history-page-no /* From history page delete popup */
 {
     background-color: #dc3545;
     /* Bootstrap red for decline/cancel dangerous action */
@@ -316,64 +298,49 @@ h1 {
 
 #return-no:hover,
 #delete-history-page-no:hover {
-    background-color: #c82333;
-    /* Darker red */
+    background-color: #c82333; /* Darker red */
 }
 
-.popup-content button.cancel-button {
-    /* For rental-popup cancel */
+.popup-content button.cancel-button { /* For rental-popup cancel */
     background-color: #6c757d;
     /* Bootstrap gray */
     color: white;
 }
 
 .popup-content button.cancel-button:hover {
-    background-color: #5a6268;
-    /* Darker gray */
+    background-color: #5a6268; /* Darker gray */
 }
-
 
 /* Test button style (if added dynamically) */
-
-#popup-30sec-test {
-    /* ID for the 30-second test button */
-    background-color: #ffc107;
-    /* Bootstrap warning yellow */
-    color: #212529;
-    /* Dark text for good contrast on yellow */
+#popup-30sec-test { /* ID for the 30-second test button */
+    background-color: #ffc107; /* Bootstrap warning yellow */
+    color: #212529; /* Dark text for good contrast on yellow */
 }
-
 #popup-30sec-test:hover {
-    background-color: #e0a800;
-    /* Darker yellow */
+    background-color: #e0a800; /* Darker yellow */
 }
 
 
 /* History Navigation Button on index.html & Back Button on history.html */
-
-.history-navigation {
-    /* Container for button on index.html */
+/* Also styles the "Activează Notificări" button if it uses the same structure */
+.history-navigation { 
     text-align: center;
     margin-top: 40px;
     padding-top: 25px;
-    border-top: 1px solid #dee2e6;
-    /* Lighter separator */
+    border-top: 1px solid #dee2e6; 
+    display: flex; /* Added for better alignment of multiple buttons */
+    justify-content: center; /* Center buttons */
+    gap: 15px; /* Space between buttons */
 }
 
-.history-navigation button,
-
-/* Button on index.html */
-
-.back-button-container button
-/* Button on history.html */
-
-{
+.history-navigation button, 
+.back-button-container button 
+ {
     padding: 12px 25px;
     font-size: 1.1em;
     font-weight: 500;
     cursor: pointer;
-    background-color: #007bff;
-    /* Primary blue */
+    background-color: #007bff; 
     color: white;
     border: none;
     border-radius: 6px;
@@ -383,47 +350,41 @@ h1 {
 
 .history-navigation button:hover,
 .back-button-container button:hover {
-    background-color: #0056b3;
-    /* Darker blue */
+    background-color: #0056b3; 
     transform: translateY(-2px);
+}
+
+/* Specific style for enable notifications button if needed, or it can inherit */
+#enableNotificationsButton {
+    background-color: #17a2b8; /* Bootstrap info blue, for example */
+}
+#enableNotificationsButton:hover {
+    background-color: #138496;
 }
 
 
 /* Delete History Button on history.html - specific styling */
-
 #deleteHistoryButtonPage {
-    padding: 12px 25px;
-    /* Same as .back-button-container button */
-    font-size: 1.1em;
-    /* Same */
-    font-weight: 500;
-    /* Same */
-    cursor: pointer;
-    /* Same */
-    color: white;
-    /* Same */
-    border: none;
-    /* Same */
-    border-radius: 6px;
-    /* Same */
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    /* Same */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    /* Same */
-    background-color: #dc3545;
-    /* Specific: Bootstrap danger red */
+    padding: 12px 25px; 
+    font-size: 1.1em;   
+    font-weight: 500; 
+    cursor: pointer;    
+    color: white;       
+    border: none;       
+    border-radius: 6px; 
+    transition: background-color 0.2s ease, transform 0.1s ease; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+
+    background-color: #dc3545; 
 }
 
 #deleteHistoryButtonPage:hover {
-    background-color: #c82333;
-    /* Specific: Darker red for hover */
-    transform: translateY(-2px);
-    /* Same lift effect */
+    background-color: #c82333; 
+    transform: translateY(-2px); 
 }
 
 
 /* Styles for history.html content */
-
 .history-page-container {
     max-width: 900px;
     margin: 20px auto;
@@ -433,8 +394,7 @@ h1 {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.controls-top-bar {
-    /* Container for back and delete buttons on history.html */
+.controls-top-bar { 
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -456,7 +416,7 @@ h1 {
     margin-top: 0;
     font-size: 1.3em;
     color: #34495e;
-    text-align: left;
+    text-align: left; 
 }
 
 .history-section ul {
@@ -489,20 +449,19 @@ h1 {
 .history-section li .log-details {
     font-size: 0.9em;
     color: #555;
-    flex-basis: 70%;
+    flex-basis: 70%; 
 }
 
 .history-section li .log-timestamp {
     font-size: 0.8em;
     color: #777;
     margin-left: 10px;
-    flex-basis: 25%;
+    flex-basis: 25%; 
     text-align: right;
 }
 
 
 /* Responsive adjustments */
-
 @media (max-width: 768px) {
     .kart-buttons-grid {
         grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -525,11 +484,21 @@ h1 {
     .popup-content button {
         padding: 10px 18px;
         font-size: 0.9em;
-        margin: 8px 5px;
+        margin: 8px 5px; 
+    }
+    .history-navigation { /* Ensure buttons stack on smaller screens if needed */
+        flex-direction: column;
+        gap: 10px;
+    }
+    .history-navigation button {
+        width: 100%; /* Make buttons full width in column layout */
+        max-width: 300px; /* Optional: prevent them from becoming too wide */
+        margin-left: auto; /* Center if max-width is used */
+        margin-right: auto;
     }
     .history-section li .log-details,
     .history-section li .log-timestamp {
-        flex-basis: 100%;
+        flex-basis: 100%; 
         text-align: left;
         margin-left: 0;
     }
@@ -557,7 +526,7 @@ h1 {
         font-size: 0.85em;
     }
     .controls-top-bar {
-        flex-direction: column;
+        flex-direction: column; 
         gap: 10px;
     }
     .controls-top-bar .back-button-container,
