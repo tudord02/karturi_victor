@@ -13,11 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // --- State Management ---
-    let karts = {}; // Holds the current state of each kart
-    const KART_STATE_KEY = 'goKartRentalState_v4'; // Key for kart status in localStorage
-    const RENTAL_HISTORY_KEY = 'goKartRentalHistory_v1'; // Key for rental history in localStorage
+    let karts = {};
+    const KART_STATE_KEY = 'goKartRentalState_v4';
+    const RENTAL_HISTORY_KEY = 'goKartRentalHistory_v1';
+    let notificationPermission = Notification.permission; // Store current permission status
 
-    // Load rental history from localStorage or initialize if not present
+    // Retrieve rental history from localStorage
     function getRentalHistory() {
         const historyJson = localStorage.getItem(RENTAL_HISTORY_KEY);
         return historyJson ? JSON.parse(historyJson) : [];
@@ -28,26 +29,19 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem(RENTAL_HISTORY_KEY, JSON.stringify(history));
     }
 
-    // Add a completed rental to the history
+    // Log a completed rental to the history
     function logRentalToHistory(kartId, durationMinutes, pricePaid) {
         const kart = karts[kartId];
         if (!kart) return;
-
         const history = getRentalHistory();
         const now = Date.now();
-        let rentalStartTime = now - (durationMinutes * 60 * 1000); // Approximate start time
-
-        // If the kart object has a more precise start time (e.g., from an active rental session), use that
-        if (kart.actualRentalStartTime) {
-            rentalStartTime = kart.actualRentalStartTime;
-        }
-
+        let rentalStartTime = kart.actualRentalStartTime || (now - durationMinutes * 60 * 1000);
         const rentalEntry = {
             kartUniqueId: kart.id,
-            kartDisplay: kart.display,
+            display: kart.display,
             kartCategory: kart.category,
             rentalStartTime: rentalStartTime,
-            rentalEndTime: now, // Logged when rental is completed
+            rentalEndTime: now,
             durationMinutes: durationMinutes,
             pricePaid: pricePaid,
         };
@@ -56,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Rental logged: ", rentalEntry);
     }
 
-
+    // Save the current state of all karts to localStorage
     function saveState() {
         try {
             localStorage.setItem(KART_STATE_KEY, JSON.stringify(karts));
@@ -65,30 +59,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Load kart states from localStorage or initialize
     function loadState() {
-        initializeKartData(false); // Initialize karts object from kartData without saving
-
+        initializeKartData(false);
         const savedState = localStorage.getItem(KART_STATE_KEY);
         if (savedState) {
             try {
                 const parsedState = JSON.parse(savedState);
                 for (const kartId in karts) {
                     if (parsedState[kartId]) {
-                        karts[kartId].status = parsedState[kartId].status || 'available';
-                        karts[kartId].rentalEndTime = parsedState[kartId].rentalEndTime || null;
-                        karts[kartId].stopwatchStartTime = parsedState[kartId].stopwatchStartTime || null;
-                        karts[kartId].actualRentalStartTime = parsedState[kartId].actualRentalStartTime || null; // Load actual start time
+                        Object.assign(karts[kartId], parsedState[kartId]);
                     }
                 }
             } catch (e) {
-                console.error("Failed to parse saved state, using default state:", e);
-                saveState();
+                console.error("Failed to parse saved state, re-initializing karts:", e);
+                initializeKartData(true);
             }
         } else {
-            saveState();
+            initializeKartData(true);
         }
     }
 
+    // Initialize the karts object from kartData
     function initializeKartData(shouldSave = true) {
         const processedKarts = {};
         kartData.forEach(cat => {
@@ -110,6 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             rentalEndTime: null,
                             stopwatchStartTime: null,
                             actualRentalStartTime: null,
+                            intendedDuration: null,
+                            intendedPrice: null
                         };
                     }
                 } else {
@@ -125,6 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         rentalEndTime: null,
                         stopwatchStartTime: null,
                         actualRentalStartTime: null,
+                        intendedDuration: null,
+                        intendedPrice: null
                     };
                 }
             });
@@ -188,7 +184,72 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAllButtonStates();
     }
 
-    // --- Event Handlers ---
+    // --- Notification Logic ---
+    // Request permission for notifications
+    async function requestNotificationPermission() {
+        if (!('Notification' in window)) {
+            console.log("Acest browser nu suportă notificări desktop.");
+            notificationPermission = "denied"; // Mark as denied if not supported
+            return;
+        }
+        if (notificationPermission === 'default') {
+            try {
+                const permission = await Notification.requestPermission();
+                notificationPermission = permission;
+                if (permission === 'granted') {
+                    console.log("Permisiune pentru notificări acordată.");
+                } else {
+                    console.log("Permisiune pentru notificări refuzată.");
+                }
+            } catch (error) {
+                console.error("Eroare la cererea permisiunii pentru notificări:", error);
+                notificationPermission = "denied";
+            }
+        }
+    }
+
+    // Send a notification when a timer expires
+    function sendTimerNotification(kart) {
+        if (notificationPermission !== 'granted') {
+            console.log("Permisiunea pentru notificări nu este acordată. Nu se poate trimite notificarea.");
+            return;
+        }
+
+        const notificationTitle = "Timpul a expirat!";
+        const notificationBody = `Kartul "${kart.display}" (${kart.category}) și-a terminat cursa.`;
+        // const iconUrl = 'path/to/your/icon.png'; // Optional: add an icon URL
+
+        const options = {
+            body: notificationBody,
+            // icon: iconUrl, // Uncomment if you have an icon
+            tag: `kart-timer-${kart.id}`, // Tag to prevent multiple notifications for the same kart if event fires rapidly
+            renotify: true, // If a notification with the same tag exists, it will be replaced and re-alert the user
+        };
+
+        try {
+            const notification = new Notification(notificationTitle, options);
+
+            // Vibrate the device, if supported
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200, 100, 200]); // Pattern: vibrate, pause, vibrate, pause, vibrate
+            }
+
+            // Optional: Close notification automatically after some time
+            // setTimeout(() => notification.close(), 10000); // Close after 10 seconds
+
+            notification.onclick = () => {
+                // Focus the window/tab when notification is clicked
+                window.focus();
+                // Optionally, you could also close the notification on click
+                // notification.close();
+            };
+        } catch (error) {
+            console.error("Eroare la crearea notificării:", error);
+        }
+    }
+
+
+    // --- Event Handlers & Core Logic ---
     function handleKartClick(kartId) {
         const kart = karts[kartId];
         if (!kart) return;
@@ -197,24 +258,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 openRentalPopup(kartId);
                 break;
             case 'rented':
-                resetKart(kartId, true);
-                break; // true indicates early return, log it
             case 'overdue':
-                resetKart(kartId, true);
-                break; // true indicates overdue return, log it
             case 'pending_return':
-                openReturnPopup(kartId);
+                showElapsedTimeAndReset(kartId);
                 break;
         }
+    }
+
+    function showElapsedTimeAndReset(kartId) {
+        const kart = karts[kartId];
+        if (!kart) return;
+        let elapsedTimeMessage = "";
+        let actualDurationMinutes = kart.intendedDuration;
+        let priceForLog = kart.intendedPrice;
+        if (kart.status === 'rented' && kart.actualRentalStartTime) {
+            const elapsedMs = Date.now() - kart.actualRentalStartTime;
+            actualDurationMinutes = Math.max(1, Math.round(elapsedMs / 60000));
+            elapsedTimeMessage = `Închiriere finalizată devreme. Timp utilizat: aprox. ${actualDurationMinutes} min. Preț: ${priceForLog} lei.`;
+        } else if (kart.status === 'overdue' && kart.actualRentalStartTime && kart.stopwatchStartTime) {
+            const overdueMs = Date.now() - kart.stopwatchStartTime;
+            const overdueMinutes = Math.round(overdueMs / 60000);
+            actualDurationMinutes = kart.intendedDuration + overdueMinutes;
+            elapsedTimeMessage = `Timp total: ${kart.intendedDuration} min inițial + ${overdueMinutes} min extra. Total: ${actualDurationMinutes} min. Preț: ${priceForLog} lei.`;
+        } else if (kart.status === 'pending_return' || (kart.status === 'rented' && Date.now() >= kart.rentalEndTime)) {
+            actualDurationMinutes = kart.intendedDuration;
+            elapsedTimeMessage = `Perioada de închiriere de ${actualDurationMinutes} min a expirat. Preț: ${priceForLog} lei.`;
+        } else {
+            elapsedTimeMessage = `Închiriere finalizată pentru kart ${kart.display}. Preț: ${priceForLog} lei.`;
+        }
+        openElapsedTimePopup(kartId, elapsedTimeMessage, actualDurationMinutes, priceForLog);
     }
 
     // --- Pop-up Management ---
     const rentalPopup = document.getElementById('rental-popup');
     const returnPopup = document.getElementById('return-popup');
+    const elapsedTimePopup = document.getElementById('elapsed-time-popup');
     let currentPopupKartId = null;
 
-    window.closePopup = function(popupId) { // Make it globally accessible for inline onclick
-        document.getElementById(popupId).style.display = 'none';
+    window.closePopup = function(popupId) {
+        const popupElement = document.getElementById(popupId);
+        if (popupElement) popupElement.style.display = 'none';
         currentPopupKartId = null;
     }
 
@@ -232,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openReturnPopup(kartId) {
         const kart = karts[kartId];
-        if (!kart) return;
+        if (!kart || kart.status !== 'pending_return') return;
         currentPopupKartId = kartId;
         document.getElementById('return-kart-id').textContent = `Kart ${kart.display}`;
         document.getElementById('return-yes').onclick = () => handleReturnConfirmation(currentPopupKartId, true);
@@ -240,24 +323,38 @@ document.addEventListener('DOMContentLoaded', () => {
         returnPopup.style.display = 'flex';
     }
 
-    // Close popups if clicking outside the content (except for return-popup)
+    function openElapsedTimePopup(kartId, message, loggedDuration, loggedPrice) {
+        document.getElementById('elapsed-time-message').textContent = message;
+        const okButton = document.getElementById('elapsed-time-ok');
+        okButton.onclick = () => {
+            resetKart(kartId, true, loggedDuration, loggedPrice);
+            closePopup('elapsed-time-popup');
+        };
+        elapsedTimePopup.style.display = 'flex';
+    }
+
     window.onclick = function(event) {
-        if (event.target == rentalPopup) {
-            closePopup('rental-popup');
-        }
+        if (event.target == rentalPopup) closePopup('rental-popup');
+        if (event.target == returnPopup) closePopup('return-popup');
     }
 
     // --- Rental Logic ---
-    function startRental(kartId, durationMinutes, pricePaid) {
+    async function startRental(kartId, durationMinutes, pricePaid) { // Made async for permission request
         const kart = karts[kartId];
         if (!kart || kart.status !== 'available') return;
+
+        // Request notification permission when the first timer is set, if not already handled
+        if (notificationPermission === 'default') {
+            await requestNotificationPermission();
+        }
+
         const now = Date.now();
         kart.status = 'rented';
-        kart.actualRentalStartTime = now; // Store the precise start time
+        kart.actualRentalStartTime = now;
         kart.rentalEndTime = now + durationMinutes * 60 * 1000;
         kart.stopwatchStartTime = null;
-        kart.intendedDuration = durationMinutes; // Store intended duration for logging
-        kart.intendedPrice = pricePaid; // Store intended price for logging
+        kart.intendedDuration = durationMinutes;
+        kart.intendedPrice = pricePaid;
         updateButtonState(kartId);
         saveState();
         closePopup('rental-popup');
@@ -265,9 +362,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleReturnConfirmation(kartId, returned) {
         const kart = karts[kartId];
-        if (!kart || kart.status !== 'pending_return') return;
+        if (!kart || kart.status !== 'pending_return') {
+            closePopup('return-popup');
+            return;
+        }
         if (returned) {
-            resetKart(kartId, true); // true indicates it's a confirmed return, log it
+            showElapsedTimeAndReset(kartId);
         } else {
             kart.status = 'overdue';
             kart.stopwatchStartTime = Date.now();
@@ -278,42 +378,30 @@ document.addEventListener('DOMContentLoaded', () => {
         closePopup('return-popup');
     }
 
-    // Modified resetKart to include logging
-    function resetKart(kartId, shouldLog = false) {
+    function resetKart(kartId, shouldLog = false, loggedDuration, loggedPrice) {
         const kart = karts[kartId];
         if (!kart) return;
-
-        if (shouldLog && (kart.status === 'rented' || kart.status === 'overdue' || kart.status === 'pending_return')) {
-            // Determine actual duration for logging
-            // If it was 'rented' or 'pending_return', intendedDuration should be used.
-            // If 'overdue', it means it completed its intended duration and then some.
-            let loggedDuration = kart.intendedDuration || 0;
-            let loggedPrice = kart.intendedPrice || 0;
-
-            if (kart.status === 'overdue') {
-                // For overdue, we assume the original rental period was completed.
-                // The stopwatch tracks additional time.
-                // For simplicity in this client-side version, we'll log the original intended duration and price.
-                // A real system might calculate overdue fees and log total time.
+        if (shouldLog) {
+            const durationToLog = typeof loggedDuration !== 'undefined' ? loggedDuration : kart.intendedDuration;
+            const priceToLog = typeof loggedPrice !== 'undefined' ? loggedPrice : kart.intendedPrice;
+            if (durationToLog > 0) {
+                logRentalToHistory(kartId, durationToLog, priceToLog);
             }
-
-            logRentalToHistory(kartId, loggedDuration, loggedPrice);
         }
-
         kart.status = 'available';
         kart.rentalEndTime = null;
         kart.stopwatchStartTime = null;
-        kart.actualRentalStartTime = null; // Clear session-specific data
+        kart.actualRentalStartTime = null;
         kart.intendedDuration = null;
         kart.intendedPrice = null;
         updateButtonState(kartId);
         saveState();
     }
 
-    // --- Timer & UI Update ---
+    // --- Timer Display & UI Update ---
     function formatTime(milliseconds) {
         if (milliseconds <= 0) return "00:00";
-        const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000)); // Ensure non-negative
+        const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
         return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
@@ -324,15 +412,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const button = document.getElementById(`kart-${kartId}`);
         const timerDisplay = document.getElementById(`timer-${kartId}`);
         if (!button || !kart || !timerDisplay) return;
-
         button.classList.remove('available', 'rented', 'overdue', 'pending_return');
         button.style.animation = '';
         void button.offsetWidth;
-
         const priceDisplay = button.querySelector('.kart-price');
         timerDisplay.textContent = '';
         if (priceDisplay) priceDisplay.style.display = 'block';
-
         switch (kart.status) {
             case 'available':
                 button.classList.add('available');
@@ -342,11 +427,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const remainingTime = kart.rentalEndTime - Date.now();
                 timerDisplay.textContent = `-${formatTime(remainingTime)}`;
                 if (priceDisplay) priceDisplay.style.display = 'none';
-                if (remainingTime <= 0 && kart.rentalEndTime !== null) { // Check rentalEndTime to avoid issues if it was cleared
-                    kart.status = 'pending_return';
-                    saveState();
-                    openReturnPopup(kart.id); // This will also trigger an updateButtonState later
-                    // updateButtonState(kart.id); // Re-run to reflect 'pending_return' - called by openReturnPopup
+                if (remainingTime <= 0 && kart.rentalEndTime !== null) {
+                    if (kart.status !== 'pending_return') {
+                        kart.status = 'pending_return';
+                        saveState(); // Save state before notification and popup
+                        requestNotificationPermission().then(() => { // Ensure permission is checked/requested
+                            sendTimerNotification(kart); // Send notification
+                        });
+                        openReturnPopup(kart.id); // Open in-app popup
+                        updateButtonState(kart.id);
+                    }
                 }
                 break;
             case 'pending_return':
@@ -377,11 +467,18 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.values(karts).forEach(kart => {
             if (kart.status === 'rented' && kart.rentalEndTime !== null) {
                 if (now >= kart.rentalEndTime) {
-                    kart.status = 'pending_return';
-                    openReturnPopup(kart.id);
-                    needsSave = true;
+                    if (kart.status !== 'pending_return') {
+                        kart.status = 'pending_return';
+                        needsSave = true;
+                        // Notification and permission request are now handled in updateButtonState when status changes
+                        // This ensures it happens once when the state flips.
+                        // sendTimerNotification(kart); // Moved to updateButtonState
+                        openReturnPopup(kart.id);
+                        updateButtonState(kart.id); // This will trigger the notification logic if needed
+                    }
+                } else {
+                    updateButtonState(kart.id);
                 }
-                updateButtonState(kart.id);
             } else if (kart.status === 'overdue') {
                 updateButtonState(kart.id);
             }
@@ -392,16 +489,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Navigation ---
-    const historyButton = document.getElementById('viewHistoryButton');
-    if (historyButton) {
-        historyButton.addEventListener('click', () => {
+    const viewHistoryBtn = document.getElementById('viewHistoryButton');
+    if (viewHistoryBtn) {
+        viewHistoryBtn.addEventListener('click', () => {
             window.location.href = 'history.html';
         });
     }
 
     // --- Initialization ---
+    // Try to get notification permission on load, or at least check current status
+    // This is non-blocking. If user interacts later, permission will be asked then if still 'default'.
+    if ('Notification' in window && Notification.permission === 'default') {
+        // Optionally, you could have a button "Enable Notifications" to trigger this.
+        // For now, let's rely on it being requested when the first timer is set or expires.
+        console.log("Notification permission is default. Will ask when needed.");
+    } else {
+        notificationPermission = Notification.permission; // Update our tracked permission
+    }
+
     loadState();
     createKartButtons();
     setInterval(tick, 1000);
-
 });
