@@ -14,10 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- State Management ---
     let karts = {};
-    const KART_STATE_KEY = 'goKartRentalState_v4'; // Ensure this matches the key you intend to use
+    const KART_STATE_KEY = 'goKartRentalState_v6';
     const RENTAL_HISTORY_KEY = 'goKartRentalHistory_v1';
-    let notificationPermission = 'default';
-    console.log("[Init] Notification permission state:", notificationPermission);
+    let notificationPermission = Notification.permission;
 
     function getRentalHistory() {
         const historyJson = localStorage.getItem(RENTAL_HISTORY_KEY);
@@ -36,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let rentalStartTime = kart.actualRentalStartTime || (now - durationMinutes * 60 * 1000);
         const rentalEntry = {
             kartUniqueId: kart.id,
-            display: kart.display, // Changed from kartDisplay to display to match kart object
+            display: kart.display,
             kartCategory: kart.category,
             rentalStartTime: rentalStartTime,
             rentalEndTime: now,
@@ -45,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         history.push(rentalEntry);
         saveRentalHistory(history);
-        console.log("Rental logged: ", rentalEntry);
+        // console.log("Rental logged: ", rentalEntry); // Keep this for your own checks
     }
 
     function saveState() {
@@ -56,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Initialize the karts object from kartData (original structure)
     function initializeKartData(shouldSave = true) {
         const processedKarts = {};
         kartData.forEach(cat => {
@@ -68,36 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     for (let i = 1; i <= count; i++) {
                         const kartId = `${cat.category.replace(/\s+/g, '-').toLowerCase()}-${name.replace(/\s+/g, '-').toLowerCase()}-${i}`;
                         const displayName = `${name} ${i}`;
-                        processedKarts[kartId] = {
-                            id: kartId,
-                            display: displayName,
-                            category: cat.category,
-                            price30: cat.price30,
-                            price1h: cat.price1h,
-                            status: 'available',
-                            rentalEndTime: null,
-                            stopwatchStartTime: null,
-                            actualRentalStartTime: null,
-                            intendedDuration: null,
-                            intendedPrice: null
-                        };
+                        processedKarts[kartId] = { id: kartId, display: displayName, category: cat.category, price30: cat.price30, price1h: cat.price1h, status: 'available', rentalEndTime: null, stopwatchStartTime: null, actualRentalStartTime: null, intendedDuration: null, intendedPrice: null };
                     }
                 } else {
                     const kartId = `${cat.category.replace(/\s+/g, '-').toLowerCase()}-${ident.replace(/\s+/g, '-').toLowerCase()}`;
                     const displayName = ident;
-                    processedKarts[kartId] = {
-                        id: kartId,
-                        display: displayName,
-                        category: cat.category,
-                        price30: cat.price30,
-                        price1h: cat.price1h,
-                        status: 'available',
-                        rentalEndTime: null,
-                        stopwatchStartTime: null,
-                        actualRentalStartTime: null,
-                        intendedDuration: null,
-                        intendedPrice: null
-                    };
+                    processedKarts[kartId] = { id: kartId, display: displayName, category: cat.category, price30: cat.price30, price1h: cat.price1h, status: 'available', rentalEndTime: null, stopwatchStartTime: null, actualRentalStartTime: null, intendedDuration: null, intendedPrice: null };
                 }
             });
         });
@@ -107,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Load kart states from localStorage or initialize (original structure)
     function loadState() {
         initializeKartData(false);
         const savedState = localStorage.getItem(KART_STATE_KEY);
@@ -128,32 +101,42 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- UI Generation ---
+    const notificationsContainer = document.getElementById('screen-notifications-container');
+
+    function addScreenNotification(kartId) {
+        const kart = karts[kartId];
+        if (!kart) return;
+        if (document.getElementById(`notif-${kartId}`)) {
+            return;
+        }
+        const notificationItem = document.createElement('div');
+        notificationItem.id = `notif-${kartId}`;
+        notificationItem.className = 'screen-notification-item';
+        notificationItem.textContent = `Kart ${kart.display}`;
+        notificationItem.onclick = () => {
+            openReturnPopup(kartId);
+        };
+        notificationsContainer.appendChild(notificationItem);
+    }
+
+    function removeScreenNotification(kartId) {
+        const notificationItem = document.getElementById(`notif-${kartId}`);
+        if (notificationItem) {
+            notificationItem.remove();
+        }
+    }
+
     function createKartButtons() {
         const container = document.getElementById('kart-categories');
-        if (!container) {
-            console.error("Fatal Error: kart-categories container not found in HTML.");
-            return;
-        }
+        if (!container) return;
         container.innerHTML = '';
         const kartsByCategory = {};
-
-        if (Object.keys(karts).length === 0) {
-            console.warn("No karts loaded or initialized. Cannot create kart buttons.");
-            // Optionally, display a message to the user in the UI
-            // container.innerHTML = "<p>No karts available to display. Please check configuration.</p>";
-            return;
-        }
-
+        if (Object.keys(karts).length === 0) return;
         Object.values(karts).forEach(kart => {
-            if (!kartsByCategory[kart.category]) {
-                kartsByCategory[kart.category] = [];
-            }
+            if (!kartsByCategory[kart.category]) kartsByCategory[kart.category] = [];
             kartsByCategory[kart.category].push(kart);
         });
-
         const sortedCategories = Object.keys(kartsByCategory).sort();
-
         sortedCategories.forEach(categoryName => {
             const categoryDiv = document.createElement('div');
             categoryDiv.className = 'category-container';
@@ -163,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
             categoryDiv.appendChild(title);
             const gridDiv = document.createElement('div');
             gridDiv.className = 'kart-buttons-grid';
-
             kartsByCategory[categoryName].forEach(kart => {
                 const button = document.createElement('button');
                 button.className = 'kart-button';
@@ -191,115 +173,46 @@ document.addEventListener('DOMContentLoaded', () => {
             container.appendChild(categoryDiv);
         });
         updateAllButtonStates();
-        console.log("Kart buttons created successfully.");
     }
 
-    // --- Notification Logic ---
     async function requestNotificationPermission() {
-        console.log("[requestNotificationPermission] Function called.");
         if (!('Notification' in window)) {
             alert("Acest browser nu suportă notificări desktop.");
-            console.log("[requestNotificationPermission] Browser does not support notifications.");
             notificationPermission = "denied";
             return "denied";
         }
-
-        console.log("[requestNotificationPermission] Current Notification.permission state:", Notification.permission);
         if (Notification.permission === 'granted') {
             notificationPermission = 'granted';
-            console.log("[requestNotificationPermission] Permission already granted.");
             return "granted";
         }
         if (Notification.permission === 'denied') {
             notificationPermission = 'denied';
             alert("Notificările sunt blocate. Verificați setările browser-ului Dvs. pentru acest site.");
-            console.log("[requestNotificationPermission] Permission previously denied.");
             return "denied";
         }
-
-        console.log("[requestNotificationPermission] Requesting permission from user...");
         try {
             const permission = await Notification.requestPermission();
             notificationPermission = permission;
-            console.log("[requestNotificationPermission] User responded with:", permission);
             if (permission === 'granted') {
-                console.log("Permisiune pentru notificări acordată de utilizator.");
                 alert("Notificările au fost activate!");
-                // ---- TEST NOTIFICATION (Uncomment to test immediately after permission grant) ----
-                // if (Notification.permission === "granted") {
-                //     console.log("[requestNotificationPermission] Sending a TEST notification.");
-                //     try {
-                //         new Notification("Notificare de Test!", {
-                //             body: "Dacă vezi asta, permisiunile funcționează!",
-                //             icon: 'kart-icon.png' // Ensure kart-icon.png is in the root directory
-                //         });
-                //     } catch (testError) {
-                //         console.error("[requestNotificationPermission] Error sending TEST notification:", testError);
-                //         alert("Eroare la trimiterea notificării de test: " + testError.message);
-                //     }
-                // }
-                // ---- END TEST NOTIFICATION ----
             } else {
-                console.log("Permisiune pentru notificări refuzată de utilizator.");
                 alert("Ați refuzat permisiunea pentru notificări.");
             }
             return permission;
         } catch (error) {
-            console.error("[requestNotificationPermission] Error requesting notification permission:", error);
             notificationPermission = "denied";
-            alert("A apărut o eroare la cererea permisiunii pentru notificări.");
             return "denied";
         }
     }
 
     function sendTimerNotification(kart) {
-        console.log(`[sendTimerNotification] Called for kart: ${kart.display}. Current global notificationPermission: ${notificationPermission}`);
-        console.log(`[sendTimerNotification] Verifying Notification.permission directly: ${Notification.permission}`);
-
-        if (notificationPermission !== 'granted' && Notification.permission !== 'granted') {
-            console.warn(`[sendTimerNotification] Permission not 'granted' (global: ${notificationPermission}, direct: ${Notification.permission}). Notification for ${kart.display} will NOT be sent.`);
-            return;
-        }
-
-        const notificationTitle = "Timpul a expirat!";
-        const notificationBody = `Kartul "${kart.display}" (${kart.category}) și-a terminat cursa.`;
-        const options = {
-            body: notificationBody,
-            tag: `kart-timer-${kart.id}`,
-            renotify: true,
-            icon: 'kart-icon.png' // You'll need to provide this image
-        };
-        console.log("[sendTimerNotification] Notification options:", options);
-
+        if (notificationPermission !== 'granted') return;
+        const options = { body: `Kartul "${kart.display}" (${kart.category}) și-a terminat cursa.`, tag: `kart-timer-${kart.id}`, renotify: true, icon: 'kart-icon.png' };
         try {
-            console.log("[sendTimerNotification] Attempting to create new Notification...");
-            const notification = new Notification(notificationTitle, options);
-            console.log("[sendTimerNotification] Notification object created:", notification);
-
-            if ('vibrate' in navigator) {
-                console.log("[sendTimerNotification] Attempting to vibrate...");
-                navigator.vibrate([200, 100, 200, 100, 200]);
-            }
-
-            notification.onclick = () => {
-                console.log("[sendTimerNotification] Notification clicked.");
-                window.focus();
-            };
-            notification.onshow = () => {
-                console.log(`[sendTimerNotification] Notification successfully shown for ${kart.display}`);
-            };
-            notification.onerror = (err) => {
-                console.error(`[sendTimerNotification] Error showing notification for ${kart.display}:`, err);
-                alert(`Eroare la afișarea notificării pentru ${kart.display}: ${err.message || 'Unknown error'}`);
-            };
-            console.log("Notificare trimisă (sau încercare de trimitere) pentru kartul: " + kart.display);
-        } catch (error) {
-            console.error("[sendTimerNotification] Error creating Notification for kart " + kart.display + ":", error);
-            alert("Eroare la crearea notificării: " + error.message + "\nVerificați consola pentru detalii.");
-        }
+            new Notification("Timpul a expirat!", options).onclick = () => window.focus();
+        } catch (error) { console.error("Error creating Notification:", error); }
     }
 
-    // --- Event Handlers & Core Logic ---
     function handleKartClick(kartId) {
         const kart = karts[kartId];
         if (!kart) return;
@@ -307,9 +220,13 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'available':
                 openRentalPopup(kartId);
                 break;
+            case 'attention_needed':
+                openReturnPopup(kartId);
+                break;
             case 'rented':
+                openConfirmResetPopup(kartId);
+                break;
             case 'overdue':
-            case 'pending_return':
                 showElapsedTimeAndReset(kartId);
                 break;
         }
@@ -325,25 +242,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kart.status === 'rented' && kart.actualRentalStartTime) {
             const elapsedMs = Date.now() - kart.actualRentalStartTime;
             actualDurationMinutes = Math.max(1, Math.round(elapsedMs / 60000));
-            elapsedTimeMessage = `Închiriere finalizată devreme. Timp utilizat: aprox. ${actualDurationMinutes} min. Preț: ${priceForLog} lei.`;
-        } else if (kart.status === 'overdue' && kart.actualRentalStartTime && kart.stopwatchStartTime) {
-            const overdueMs = Date.now() - kart.stopwatchStartTime;
-            const overdueMinutes = Math.round(overdueMs / 60000);
-            actualDurationMinutes = (kart.intendedDuration || 0) + overdueMinutes; // Ensure intendedDuration is a number
+            elapsedTimeMessage = `Închiriere oprită devreme. Timp utilizat: aprox. ${actualDurationMinutes} min. Preț: ${priceForLog} lei.`;
+        } else if (kart.status === 'overdue' && kart.actualRentalStartTime) {
+            const baseDurationMs = (kart.intendedDuration || 0) * 60000;
+            const stopwatchMs = Date.now() - (kart.stopwatchStartTime || (kart.actualRentalStartTime + baseDurationMs));
+            const totalElapsedMs = baseDurationMs + stopwatchMs;
+            actualDurationMinutes = Math.max(1, Math.round(totalElapsedMs / 60000));
+            const overdueMinutes = Math.round(stopwatchMs / 60000);
             elapsedTimeMessage = `Timp total: ${kart.intendedDuration || 0} min inițial + ${overdueMinutes} min extra. Total: ${actualDurationMinutes} min. Preț: ${priceForLog} lei.`;
-        } else if (kart.status === 'pending_return' || (kart.status === 'rented' && kart.rentalEndTime && Date.now() >= kart.rentalEndTime)) {
+        } else if (kart.status === 'attention_needed') {
             actualDurationMinutes = kart.intendedDuration;
             elapsedTimeMessage = `Perioada de închiriere de ${actualDurationMinutes} min a expirat. Preț: ${priceForLog} lei.`;
-        } else {
-            elapsedTimeMessage = `Închiriere finalizată pentru kart ${kart.display}. Preț: ${priceForLog} lei.`;
         }
         openElapsedTimePopup(kartId, elapsedTimeMessage, actualDurationMinutes, priceForLog);
     }
 
-    // --- Pop-up Management ---
     const rentalPopup = document.getElementById('rental-popup');
     const returnPopup = document.getElementById('return-popup');
     const elapsedTimePopup = document.getElementById('elapsed-time-popup');
+    const confirmResetPopup = document.getElementById('confirm-reset-popup');
     let currentPopupKartId = null;
 
     window.closePopup = function(popupId) {
@@ -352,63 +269,88 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPopupKartId = null;
     }
 
+    // **MODIFIED openRentalPopup with console.logs for debugging**
     function openRentalPopup(kartId) {
         const kart = karts[kartId];
-        if (!kart) return;
+        console.log("[DEBUG] openRentalPopup called for kartId:", kartId);
+        if (!kart) {
+            console.error("[DEBUG] Kart object not found for ID:", kartId);
+            return;
+        }
+        console.log("[DEBUG] Kart object:", kart);
         currentPopupKartId = kartId;
 
         const popupContent = rentalPopup.querySelector('.popup-content');
         const existingTestButton = popupContent.querySelector('#popup-30sec-test');
-        if (existingTestButton) {
-            existingTestButton.remove();
-        }
+        if (existingTestButton) existingTestButton.remove();
 
         document.getElementById('popup-kart-id').textContent = `Kart ${kart.display}`;
-        const btn30Min = document.getElementById('popup-30min');
-        btn30Min.textContent = `30 min (${kart.price30} lei)`;
-        btn30Min.onclick = () => startRental(currentPopupKartId, 30, kart.price30);
 
+        const btn30Min = document.getElementById('popup-30min');
         const btn1h = document.getElementById('popup-1h');
-        btn1h.textContent = `1 oră (${kart.price1h} lei)`;
+
+        if (!btn30Min || !btn1h) {
+            console.error("[DEBUG] 30min or 1h button element not found in HTML!");
+            return;
+        }
+        console.log("[DEBUG] btn30Min element:", btn30Min);
+        console.log("[DEBUG] btn1h element:", btn1h);
+
+        const text30Min = `30 min (${kart.price30} lei)`;
+        const text1h = `1 oră (${kart.price1h} lei)`;
+
+        console.log("[DEBUG] Text for 30min button:", text30Min);
+        console.log("[DEBUG] Text for 1h button:", text1h);
+
+        btn30Min.textContent = text30Min;
+        btn1h.textContent = text1h;
+
+        btn30Min.onclick = () => startRental(currentPopupKartId, 30, kart.price30);
         btn1h.onclick = () => startRental(currentPopupKartId, 60, kart.price1h);
 
-        // Reverted to original test button logic for "basic-karts-fara-numar-1" or similar
-        // Assuming the '1' ident from "Basic Karts" is 'basic-karts-1-1' or 'basic-karts-1'
-        // The original script used: if (kart.id === 'basic-karts-1')
-        // Let's find the kart with ident "1" in "Basic Karts" category
-        const targetTestKartId = `basic-karts-1`; // This matches the user's original logic for the test button if ident "1" is directly mapped
-
-        if (kart.id === targetTestKartId) {
-            console.log("Adding 30sec test button for kart:", kart.id);
+        const targetTestKartIds = ['basic-karts-1', 'basic-karts-2'];
+        if (targetTestKartIds.includes(kart.id)) {
             const testButton30Sec = document.createElement('button');
             testButton30Sec.id = 'popup-30sec-test';
             testButton30Sec.textContent = '30 sec (Test - 1 leu)';
-            testButton30Sec.onclick = () => startRental(currentPopupKartId, 0.5, 1); // 0.5 minutes = 30 seconds
-
+            testButton30Sec.onclick = () => startRental(currentPopupKartId, 0.5, 1);
             testButton30Sec.style.backgroundColor = '#ffc107';
             testButton30Sec.style.color = '#212529';
-
-            const cancelButton = popupContent.querySelector('.cancel-button');
-            popupContent.insertBefore(testButton30Sec, cancelButton);
+            popupContent.insertBefore(testButton30Sec, popupContent.querySelector('.cancel-button'));
         }
+
         rentalPopup.style.display = 'flex';
+        console.log("[DEBUG] Rental popup displayed.");
     }
 
     function openReturnPopup(kartId) {
         const kart = karts[kartId];
-        if (!kart || kart.status !== 'pending_return') return;
+        if (!kart) return;
         currentPopupKartId = kartId;
         document.getElementById('return-kart-id').textContent = `Kart ${kart.display}`;
         document.getElementById('return-yes').onclick = () => handleReturnConfirmation(currentPopupKartId, true);
         document.getElementById('return-no').onclick = () => handleReturnConfirmation(currentPopupKartId, false);
         returnPopup.style.display = 'flex';
-        console.log(`[openReturnPopup] Opened for kart ${kart.display}`);
+    }
+
+    function openConfirmResetPopup(kartId) {
+        const kart = karts[kartId];
+        if (!kart || kart.status !== 'rented') return;
+        currentPopupKartId = kartId;
+        document.getElementById('confirm-reset-kart-id').textContent = `Kart ${kart.display}`;
+        document.getElementById('confirm-reset-yes').onclick = () => {
+            showElapsedTimeAndReset(kartId);
+            closePopup('confirm-reset-popup');
+        };
+        document.getElementById('confirm-reset-cancel').onclick = () => {
+            closePopup('confirm-reset-popup');
+        };
+        confirmResetPopup.style.display = 'flex';
     }
 
     function openElapsedTimePopup(kartId, message, loggedDuration, loggedPrice) {
         document.getElementById('elapsed-time-message').textContent = message;
-        const okButton = document.getElementById('elapsed-time-ok');
-        okButton.onclick = () => {
+        document.getElementById('elapsed-time-ok').onclick = () => {
             resetKart(kartId, true, loggedDuration, loggedPrice);
             closePopup('elapsed-time-popup');
         };
@@ -419,14 +361,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target === rentalPopup) closePopup('rental-popup');
         if (event.target === returnPopup) closePopup('return-popup');
         if (event.target === elapsedTimePopup) closePopup('elapsed-time-popup');
+        if (event.target === confirmResetPopup) closePopup('confirm-reset-popup');
     }
 
-    // --- Rental Logic ---
-    async function startRental(kartId, durationMinutes, pricePaid) {
+    function startRental(kartId, durationMinutes, pricePaid) {
         const kart = karts[kartId];
         if (!kart || kart.status !== 'available') return;
-        console.log(`[startRental] Renting kart ${kart.display} for ${durationMinutes} mins, price ${pricePaid}. Current notificationPermission: ${notificationPermission}`);
-
         const now = Date.now();
         kart.status = 'rented';
         kart.actualRentalStartTime = now;
@@ -437,23 +377,20 @@ document.addEventListener('DOMContentLoaded', () => {
         updateButtonState(kartId);
         saveState();
         closePopup('rental-popup');
-        console.log(`[startRental] Kart ${kart.display} rented. Ends at: ${new Date(kart.rentalEndTime).toLocaleTimeString()}`);
     }
 
     function handleReturnConfirmation(kartId, returned) {
         const kart = karts[kartId];
-        if (!kart || kart.status !== 'pending_return') {
-            closePopup('return-popup');
-            return;
-        }
+        if (!kart) { closePopup('return-popup'); return; }
+        removeScreenNotification(kartId);
         if (returned) {
             showElapsedTimeAndReset(kartId);
         } else {
             kart.status = 'overdue';
-            kart.stopwatchStartTime = Date.now();
-            console.log(`[handleReturnConfirmation] Kart ${kart.display} NOT returned. Status: overdue. Overdue timer started.`);
-            updateButtonState(kartId);
+            kart.stopwatchStartTime = kart.originalRentalEndTime || kart.actualRentalStartTime + (kart.intendedDuration * 60000);
+            kart.rentalEndTime = null;
             saveState();
+            updateButtonState(kartId);
         }
         closePopup('return-popup');
     }
@@ -461,14 +398,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetKart(kartId, shouldLog = false, loggedDuration, loggedPrice) {
         const kart = karts[kartId];
         if (!kart) return;
-        console.log(`[resetKart] Resetting kart ${kart.display}. Log: ${shouldLog}`);
+        removeScreenNotification(kartId);
         if (shouldLog) {
             const durationToLog = typeof loggedDuration !== 'undefined' ? loggedDuration : kart.intendedDuration;
             const priceToLog = typeof loggedPrice !== 'undefined' ? loggedPrice : kart.intendedPrice;
-            if (durationToLog > 0) {
+            if (durationToLog !== null && priceToLog !== null && durationToLog >= 0) {
                 logRentalToHistory(kartId, durationToLog, priceToLog);
-            } else {
-                console.log(`[resetKart] Not logging kart ${kart.display} as duration was 0 or undefined.`);
             }
         }
         kart.status = 'available';
@@ -477,11 +412,11 @@ document.addEventListener('DOMContentLoaded', () => {
         kart.actualRentalStartTime = null;
         kart.intendedDuration = null;
         kart.intendedPrice = null;
+        kart.originalRentalEndTime = null;
         updateButtonState(kartId);
         saveState();
     }
 
-    // --- Timer Display & UI Update ---
     function formatTime(milliseconds) {
         if (milliseconds <= 0) return "00:00";
         const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
@@ -496,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const timerDisplay = document.getElementById(`timer-${kartId}`);
         if (!button || !kart || !timerDisplay) return;
 
-        button.classList.remove('available', 'rented', 'overdue', 'pending_return');
+        button.classList.remove('available', 'rented', 'overdue', 'attention-needed');
         button.style.animation = '';
         void button.offsetWidth;
 
@@ -513,36 +448,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const remainingTime = kart.rentalEndTime ? kart.rentalEndTime - Date.now() : 0;
                 timerDisplay.textContent = `-${formatTime(remainingTime)}`;
                 if (priceDisplay) priceDisplay.style.display = 'none';
-
-                if (remainingTime <= 0 && kart.rentalEndTime !== null) {
-                    if (kart.status !== 'pending_return') {
-                        kart.status = 'pending_return';
-                        saveState();
-                        console.log(`[updateButtonState] Kart ${kart.display} time EXPIRED. Status: ${kart.status}. Global notifPerm: ${notificationPermission}. Direct Notif.perm: ${Notification.permission}`);
-
-                        if (notificationPermission === 'granted' || Notification.permission === 'granted') {
-                            console.log(`[updateButtonState] Attempting to send notification for ${kart.display}`);
-                            sendTimerNotification(kart);
-                        } else {
-                            console.warn(`[updateButtonState] Notification permission not granted for ${kart.display}. Not sending. Global: ${notificationPermission}, Direct: ${Notification.permission}`);
-                        }
-                        openReturnPopup(kart.id);
-                        updateButtonState(kart.id); // Re-render with new status
-                    }
-                }
                 break;
-            case 'pending_return':
-                button.classList.add('rented');
-                timerDisplay.textContent = 'CONFIRM?';
+            case 'attention_needed':
+                button.classList.add('attention-needed');
+                timerDisplay.textContent = 'TIMP EXPIRAT';
                 if (priceDisplay) priceDisplay.style.display = 'none';
-                console.log(`[updateButtonState] Kart ${kart.display} is PENDING_RETURN.`);
                 break;
             case 'overdue':
                 button.classList.add('overdue');
                 const overdueTime = kart.stopwatchStartTime ? Date.now() - kart.stopwatchStartTime : 0;
                 timerDisplay.textContent = `+${formatTime(overdueTime)}`;
                 if (priceDisplay) priceDisplay.style.display = 'none';
-                button.style.animation = 'blink 1.3s linear infinite';
                 break;
         }
     }
@@ -550,105 +466,53 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateAllButtonStates() {
         Object.keys(karts).forEach(kartId => {
             updateButtonState(kartId);
+            if (karts[kartId].status === 'attention_needed') {
+                addScreenNotification(kartId);
+            }
         });
     }
 
-    // --- Global Timer Loop ---
     function tick() {
-        let needsSave = false;
         const now = Date.now();
         Object.values(karts).forEach(kart => {
-            if (kart.status === 'rented' && kart.rentalEndTime !== null) {
-                if (now >= kart.rentalEndTime) {
-                    if (kart.status !== 'pending_return') {
-                        console.log(`[tick] Kart ${kart.display} rental period ended. Current status: ${kart.status}. Transitioning to pending_return.`);
-                        kart.status = 'pending_return';
-                        needsSave = true;
-                        openReturnPopup(kart.id);
-                        updateButtonState(kart.id);
-                    }
-                } else {
-                    updateButtonState(kart.id);
-                }
-            } else if (kart.status === 'overdue') {
+            if (kart.status === 'rented' && kart.rentalEndTime && now >= kart.rentalEndTime) {
+                kart.status = 'attention_needed';
+                kart.originalRentalEndTime = kart.rentalEndTime;
+                sendTimerNotification(kart);
+                saveState();
+                updateButtonState(kart.id);
+                addScreenNotification(kart.id);
+            }
+            if (kart.status === 'rented' || kart.status === 'overdue') {
                 updateButtonState(kart.id);
             }
         });
-        if (needsSave) {
-            saveState();
-        }
     }
 
-    // --- Navigation ---
     const viewHistoryBtn = document.getElementById('viewHistoryButton');
     if (viewHistoryBtn) {
-        viewHistoryBtn.addEventListener('click', () => {
-            window.location.href = 'history.html';
-        });
+        viewHistoryBtn.addEventListener('click', () => { window.location.href = 'history.html'; });
     }
-
-    // --- Buton Activare Notificări ---
     const enableNotificationsBtn = document.getElementById('enableNotificationsButton');
     if (enableNotificationsBtn) {
         if ('Notification' in window) {
-            console.log("[Init Button] Initial Notification.permission:", Notification.permission);
-            if (Notification.permission === 'granted') {
-                enableNotificationsBtn.style.display = 'none';
-                notificationPermission = 'granted';
-                console.log("Permisiunea pentru notificări este deja acordată la încărcare. Buton ascuns.");
-            } else if (Notification.permission === 'denied') {
-                enableNotificationsBtn.style.display = 'none';
-                notificationPermission = 'denied';
-                console.log("Permisiunea pentru notificări este refuzată la încărcare. Buton ascuns.");
-            } else { // default
-                notificationPermission = 'default';
-                enableNotificationsBtn.style.display = 'inline-block';
-                console.log("Permisiunea pentru notificări este 'default' la încărcare. Buton vizibil.");
-            }
+            if (Notification.permission === 'granted') enableNotificationsBtn.style.display = 'none';
+            else if (Notification.permission === 'denied') enableNotificationsBtn.style.display = 'none';
+            else enableNotificationsBtn.style.display = 'inline-block';
         } else {
             enableNotificationsBtn.style.display = 'none';
-            notificationPermission = 'denied';
-            console.log("Browser-ul nu suportă notificări, buton ascuns.");
         }
-
         enableNotificationsBtn.addEventListener('click', async() => {
-            console.log("[Button Click] 'Activează Notificări' clicked.");
             const permissionResult = await requestNotificationPermission();
-            if (permissionResult !== 'default') {
-                enableNotificationsBtn.style.display = 'none';
-                console.log(`[Button Click] Notification permission is now '${permissionResult}'. Hiding button.`);
-            } else {
-                console.log(`[Button Click] Notification permission is still '${permissionResult}'. Button remains visible.`);
-            }
+            if (permissionResult !== 'default') enableNotificationsBtn.style.display = 'none';
         });
     }
 
-    // --- Initialization ---
     try {
-        console.log("Document loaded. Initializing app...");
         loadState();
-        console.log("loadState completed. Karts object:", karts ? Object.keys(karts).length + " karts" : "undefined/null");
         createKartButtons();
-        console.log("createKartButtons completed.");
         setInterval(tick, 1000);
-        console.log("App initialized. Number of karts:", karts ? Object.keys(karts).length : "N/A");
-        console.log("Global notificationPermission after init and button setup:", notificationPermission);
     } catch (error) {
         console.error("Unhandled error during app initialization:", error);
-        // Display a user-friendly message on the page
-        const container = document.getElementById('kart-categories') || document.body;
-        if (container) {
-            const errorMsgElement = document.createElement('p');
-            errorMsgElement.textContent = "A apărut o eroare la inițializarea aplicației. Verificați consola pentru detalii.";
-            errorMsgElement.style.color = "red";
-            errorMsgElement.style.fontWeight = "bold";
-            errorMsgElement.style.textAlign = "center";
-            errorMsgElement.style.padding = "20px";
-            if (container.firstChild) {
-                container.insertBefore(errorMsgElement, container.firstChild);
-            } else {
-                container.appendChild(errorMsgElement);
-            }
-        }
     }
 });
