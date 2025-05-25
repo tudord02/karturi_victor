@@ -1,7 +1,7 @@
 // history_script.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    const RENTAL_HISTORY_KEY = 'goKartRentalHistory_v1'; 
+    const RENTAL_HISTORY_KEY = 'goKartRentalHistory_v1';
 
     function getRentalHistory() {
         const historyJson = localStorage.getItem(RENTAL_HISTORY_KEY);
@@ -15,14 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function calculateStatistics(history, daysAgo) {
-        const stats = {}; 
+        const stats = {};
         const now = new Date();
         const cutoffDate = new Date(now);
-        cutoffDate.setDate(now.getDate() - daysAgo); 
-        cutoffDate.setHours(0, 0, 0, 0); 
+        cutoffDate.setDate(now.getDate() - daysAgo);
+        cutoffDate.setHours(0, 0, 0, 0);
 
         history.forEach(rental => {
-            const rentalDate = new Date(rental.rentalEndTime); 
+            const rentalDate = new Date(rental.rentalEndTime);
             if (rentalDate >= cutoffDate) {
                 stats[rental.kartCategory] = (stats[rental.kartCategory] || 0) + 1;
             }
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ulElement = document.getElementById(elementId);
         if (!ulElement) return;
 
-        ulElement.innerHTML = ''; 
+        ulElement.innerHTML = '';
 
         if (Object.keys(statsData).length === 0) {
             ulElement.innerHTML = '<li>Nicio închiriere în această perioadă.</li>';
@@ -63,14 +63,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const ulElement = document.getElementById('detailed-history-log');
         if (!ulElement) return;
 
-        ulElement.innerHTML = ''; 
+        ulElement.innerHTML = '';
 
         if (history.length === 0) {
             ulElement.innerHTML = '<li>Niciun istoric de închirieri găsit.</li>';
             return;
         }
 
-        const recentHistory = history.slice().reverse().slice(0, 50); 
+        const recentHistory = history.slice().reverse().slice(0, 50);
 
         recentHistory.forEach(rental => {
             const li = document.createElement('li');
@@ -118,24 +118,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (yesButtonPage && deletePopupPage) {
         yesButtonPage.addEventListener('click', () => {
-            localStorage.removeItem(RENTAL_HISTORY_KEY); 
-            alert("Istoricul închirierilor a fost șters."); 
-            deletePopupPage.style.display = 'none'; 
-            loadAndDisplayAllHistory(); 
+            localStorage.removeItem(RENTAL_HISTORY_KEY);
+            alert("Istoricul închirierilor a fost șters.");
+            deletePopupPage.style.display = 'none';
+            loadAndDisplayAllHistory();
         });
     }
 
     if (noButtonPage && deletePopupPage) {
         noButtonPage.addEventListener('click', () => {
-            deletePopupPage.style.display = 'none'; 
+            deletePopupPage.style.display = 'none';
         });
     }
-    
+
     window.addEventListener('click', function(event) {
         if (deletePopupPage && event.target == deletePopupPage) {
             deletePopupPage.style.display = 'none';
         }
     });
 
-    loadAndDisplayAllHistory(); 
+    loadAndDisplayAllHistory();
 });
