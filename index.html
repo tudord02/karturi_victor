@@ -13,14 +13,14 @@
         <h1>Panou de Control Închirieri Go-Kart</h1>
 
         <div id="kart-categories">
-            </div>
+        </div>
 
         <div id="rental-popup" class="popup" style="display: none;">
             <div class="popup-content">
                 <h3 id="popup-kart-id">Kart ...</h3>
                 <p>Selectați durata închirierii:</p>
-                <button id="popup-30min"></button>
-                <button id="popup-1h"></button>
+                <button id="popup-30min">30?</button>
+                <button id="popup-1h">1H?</button>
                 <button class="cancel-button" onclick="closePopup('rental-popup')">Anulează</button>
             </div>
         </div>
@@ -42,10 +42,22 @@
             </div>
         </div>
 
+        <div id="confirm-reset-popup" class="popup" style="display: none;">
+            <div class="popup-content">
+                <h3 id="confirm-reset-kart-id">Kart ...</h3>
+                <p>Sunteți sigur că doriți să resetați această închiriere în curs?</p>
+                <button id="confirm-reset-yes">Da, Resetează</button>
+                <button id="confirm-reset-cancel" class="cancel-button">Anulează</button>
+            </div>
+        </div>
+
         <div class="history-navigation">
             <button id="viewHistoryButton">Vezi Istoric Închirieri</button>
             <button id="enableNotificationsButton" style="margin-left: 10px;">Activează Notificări</button>
         </div>
+    </div>
+
+    <div id="screen-notifications-container">
     </div>
 
     <script src="script.js"></script>
