@@ -88,7 +88,8 @@ h1 {
     justify-content: space-between;
     /* Space out content */
     align-items: center;
-    overflow: hidden;
+    overflow: visible;
+    /* Changed from hidden to allow pulsing border to show */
     transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
@@ -140,7 +141,7 @@ h1 {
     color: #059669;
 }
 
-.kart-button.rented { /* Also used for pending_return visually */
+.kart-button.rented {
     background-color: #fee2e2;
     /* Light red */
     color: #991b1b;
@@ -159,7 +160,7 @@ h1 {
     color: #9a3412;
     /* Dark orange text */
     border-color: #fed7aa;
-    animation: blink 1.3s linear infinite;
+    animation: blink-overdue 1.3s linear infinite;
 }
 
 .kart-button.overdue .kart-name,
@@ -167,7 +168,21 @@ h1 {
     color: #c2410c;
 }
 
-@keyframes blink {
+.kart-button.attention-needed {
+    background-color: #fef3c7;
+    /* A light yellow to indicate attention */
+    color: #92400e;
+    border-color: #fde68a;
+    animation: pulse-border 2s infinite;
+    /* A pulsing border to attract attention */
+}
+
+.kart-button.attention-needed .kart-timer {
+    color: #b45309;
+    font-weight: bold;
+}
+
+@keyframes blink-overdue {
     0%,
     100% {
         opacity: 1;
@@ -176,6 +191,18 @@ h1 {
     50% {
         opacity: 0.7;
         box-shadow: none;
+    }
+}
+
+@keyframes pulse-border {
+    0% {
+        box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(234, 179, 8, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(234, 179, 8, 0);
     }
 }
 
@@ -188,44 +215,79 @@ h1 {
     padding-top: 4px;
 }
 
+#screen-notifications-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    /* High z-index to stay on top of everything */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    /* Align items to the right */
+    gap: 10px;
+}
+
+.screen-notification-item {
+    background-color: #dc3545;
+    /* Red */
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    /* Pill shape */
+    cursor: pointer;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+    font-weight: bold;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: fadeInRight 0.3s ease-in-out;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.screen-notification-item:hover {
+    transform: scale(1.05);
+    background-color: #c82333;
+    /* Darker red on hover */
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 
 /* Pop-up Styles */
 
 .popup {
     display: none;
-    /* Hidden by default */
     position: fixed;
-    /* Stay in place */
     z-index: 1000;
-    /* Sit on top */
     left: 0;
     top: 0;
     width: 100%;
-    /* Full width */
     height: 100%;
-    /* Full height */
     overflow: auto;
-    /* Enable scroll if needed */
     background-color: rgba(0, 0, 0, 0.55);
-    /* Black w/ opacity */
     align-items: center;
-    /* Vertical center */
     justify-content: center;
-    /* Horizontal center */
     padding: 15px;
-    /* Padding for smaller screens */
 }
 
 .popup-content {
     background-color: #ffffff;
     margin: auto;
     padding: 30px;
-    /* Increased padding */
     border: 1px solid #adb5bd;
     width: 90%;
-    /* Responsive width */
     max-width: 480px;
-    /* Max width for larger screens */
     border-radius: 10px;
     text-align: center;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -242,17 +304,22 @@ h1 {
     font-size: 1.1em;
 }
 
+
+/* General style for ALL buttons inside any popup-content */
+
 .popup-content button {
     padding: 12px 22px;
     margin: 10px 8px;
     cursor: pointer;
     border-radius: 6px;
     border: none;
-    /* Removed border, relying on background */
     font-size: 1em;
+    /* Default font size for popup buttons */
     font-weight: 500;
     transition: background-color 0.2s ease, transform 0.1s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 100px;
+    line-height: 1.5;
 }
 
 .popup-content button:hover {
@@ -260,87 +327,165 @@ h1 {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* Specific popup button styles */
+
+/* Specific popup button styles - keeping previous explicit styles */
+
 #popup-30min,
-#return-yes, /* From return-popup */
-#elapsed-time-ok, /* From elapsed-time-popup */
-#delete-history-page-yes /* From history page delete popup */
- {
+#return-yes,
+#elapsed-time-ok,
+#delete-history-page-yes,
+#confirm-reset-yes {
     background-color: #28a745;
-    /* Bootstrap green for confirm/proceed */
     color: white;
+    padding: 12px 22px;
+    margin: 10px 8px;
+    font-size: 1em;
+    font-weight: 500;
+    border-radius: 6px;
+    border: none;
+    min-width: 100px;
+    line-height: 1.5;
 }
 
 #popup-30min:hover,
 #return-yes:hover,
 #elapsed-time-ok:hover,
-#delete-history-page-yes:hover {
-    background-color: #218838; /* Darker green */
+#delete-history-page-yes:hover,
+#confirm-reset-yes:hover {
+    background-color: #218838;
 }
 
 #popup-1h {
     background-color: #007bff;
-    /* Bootstrap blue */
     color: white;
+    padding: 12px 22px;
+    margin: 10px 8px;
+    font-size: 1em;
+    font-weight: 500;
+    border-radius: 6px;
+    border: none;
+    min-width: 100px;
+    line-height: 1.5;
 }
 
 #popup-1h:hover {
-    background-color: #0056b3; /* Darker blue */
+    background-color: #0056b3;
 }
 
-#return-no, /* From return-popup */
-#delete-history-page-no /* From history page delete popup */
-{
+#return-no,
+#delete-history-page-no {
     background-color: #dc3545;
-    /* Bootstrap red for decline/cancel dangerous action */
     color: white;
+    padding: 12px 22px;
+    margin: 10px 8px;
+    font-size: 1em;
+    font-weight: 500;
+    border-radius: 6px;
+    border: none;
+    min-width: 100px;
+    line-height: 1.5;
 }
 
 #return-no:hover,
 #delete-history-page-no:hover {
-    background-color: #c82333; /* Darker red */
+    background-color: #c82333;
 }
 
-.popup-content button.cancel-button { /* For rental-popup cancel */
+.popup-content button.cancel-button,
+#confirm-reset-cancel {
     background-color: #6c757d;
-    /* Bootstrap gray */
     color: white;
+    padding: 12px 22px;
+    margin: 10px 8px;
+    font-size: 1em;
+    font-weight: 500;
+    border-radius: 6px;
+    border: none;
+    min-width: 100px;
+    line-height: 1.5;
 }
 
-.popup-content button.cancel-button:hover {
-    background-color: #5a6268; /* Darker gray */
+.popup-content button.cancel-button:hover,
+#confirm-reset-cancel:hover {
+    background-color: #5a6268;
 }
 
-/* Test button style (if added dynamically) */
-#popup-30sec-test { /* ID for the 30-second test button */
-    background-color: #ffc107; /* Bootstrap warning yellow */
-    color: #212529; /* Dark text for good contrast on yellow */
+#popup-30sec-test {
+    background-color: #ffc107;
+    color: #212529;
+    padding: 12px 22px;
+    margin: 10px 8px;
+    font-size: 1em;
+    font-weight: 500;
+    border-radius: 6px;
+    border: none;
+    min-width: 100px;
+    line-height: 1.5;
 }
+
 #popup-30sec-test:hover {
-    background-color: #e0a800; /* Darker yellow */
+    background-color: #e0a800;
 }
+
+
+/* --- DEBUGGING STYLES: Add these at the very end of your style.css --- */
+
+#popup-30min,
+#popup-1h {
+    padding: 20px !important;
+    font-size: 16px !important;
+    /* Make font very explicitly sized */
+    color: black !important;
+    /* Force color to black */
+    background-color: lightskyblue !important;
+    /* Force a very visible background */
+    width: auto !important;
+    /* Let content determine width with padding */
+    min-width: 120px !important;
+    /* Ensure a minimum width */
+    height: auto !important;
+    /* Let content determine height */
+    min-height: 50px !important;
+    /* Ensure a minimum height */
+    border: 3px solid deeppink !important;
+    /* Very visible border */
+    display: inline-block !important;
+    /* Ensure it behaves like a button and takes dimensions */
+    opacity: 1 !important;
+    /* Ensure it's not transparent */
+    visibility: visible !important;
+    /* Ensure it's not hidden */
+    line-height: normal !important;
+    /* Ensure text isn't squashed */
+    text-align: center !important;
+    vertical-align: middle !important;
+    box-sizing: border-box !important;
+    /* Ensure padding and border are included in width/height calculations correctly */
+}
+
+
+/* --- END DEBUGGING STYLES --- */
 
 
 /* History Navigation Button on index.html & Back Button on history.html */
-/* Also styles the "Activează Notificări" button if it uses the same structure */
-.history-navigation { 
+
+.history-navigation {
     text-align: center;
     margin-top: 40px;
     padding-top: 25px;
-    border-top: 1px solid #dee2e6; 
-    display: flex; /* Added for better alignment of multiple buttons */
-    justify-content: center; /* Center buttons */
-    gap: 15px; /* Space between buttons */
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
 }
 
-.history-navigation button, 
-.back-button-container button 
- {
+.history-navigation button,
+.back-button-container button {
     padding: 12px 25px;
     font-size: 1.1em;
     font-weight: 500;
     cursor: pointer;
-    background-color: #007bff; 
+    background-color: #007bff;
     color: white;
     border: none;
     border-radius: 6px;
@@ -350,41 +495,42 @@ h1 {
 
 .history-navigation button:hover,
 .back-button-container button:hover {
-    background-color: #0056b3; 
+    background-color: #0056b3;
     transform: translateY(-2px);
 }
 
-/* Specific style for enable notifications button if needed, or it can inherit */
 #enableNotificationsButton {
-    background-color: #17a2b8; /* Bootstrap info blue, for example */
+    background-color: #17a2b8;
 }
+
 #enableNotificationsButton:hover {
     background-color: #138496;
 }
 
 
 /* Delete History Button on history.html - specific styling */
-#deleteHistoryButtonPage {
-    padding: 12px 25px; 
-    font-size: 1.1em;   
-    font-weight: 500; 
-    cursor: pointer;    
-    color: white;       
-    border: none;       
-    border-radius: 6px; 
-    transition: background-color 0.2s ease, transform 0.1s ease; 
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
 
-    background-color: #dc3545; 
+#deleteHistoryButtonPage {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    font-weight: 500;
+    cursor: pointer;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #dc3545;
 }
 
 #deleteHistoryButtonPage:hover {
-    background-color: #c82333; 
-    transform: translateY(-2px); 
+    background-color: #c82333;
+    transform: translateY(-2px);
 }
 
 
 /* Styles for history.html content */
+
 .history-page-container {
     max-width: 900px;
     margin: 20px auto;
@@ -394,7 +540,7 @@ h1 {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.controls-top-bar { 
+.controls-top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -416,7 +562,7 @@ h1 {
     margin-top: 0;
     font-size: 1.3em;
     color: #34495e;
-    text-align: left; 
+    text-align: left;
 }
 
 .history-section ul {
@@ -449,19 +595,20 @@ h1 {
 .history-section li .log-details {
     font-size: 0.9em;
     color: #555;
-    flex-basis: 70%; 
+    flex-basis: 70%;
 }
 
 .history-section li .log-timestamp {
     font-size: 0.8em;
     color: #777;
     margin-left: 10px;
-    flex-basis: 25%; 
+    flex-basis: 25%;
     text-align: right;
 }
 
 
 /* Responsive adjustments */
+
 @media (max-width: 768px) {
     .kart-buttons-grid {
         grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -482,23 +629,29 @@ h1 {
         padding: 20px;
     }
     .popup-content button {
-        padding: 10px 18px;
+        padding: 10px 15px;
         font-size: 0.9em;
-        margin: 8px 5px; 
+        margin: 8px 5px;
+        display: block;
+        width: calc(100% - 10px);
+        box-sizing: border-box;
     }
-    .history-navigation { /* Ensure buttons stack on smaller screens if needed */
+    .popup-content button:not(:last-child) {
+        margin-bottom: 10px;
+    }
+    .history-navigation {
         flex-direction: column;
         gap: 10px;
     }
     .history-navigation button {
-        width: 100%; /* Make buttons full width in column layout */
-        max-width: 300px; /* Optional: prevent them from becoming too wide */
-        margin-left: auto; /* Center if max-width is used */
+        width: 100%;
+        max-width: 300px;
+        margin-left: auto;
         margin-right: auto;
     }
     .history-section li .log-details,
     .history-section li .log-timestamp {
-        flex-basis: 100%; 
+        flex-basis: 100%;
         text-align: left;
         margin-left: 0;
     }
@@ -526,7 +679,7 @@ h1 {
         font-size: 0.85em;
     }
     .controls-top-bar {
-        flex-direction: column; 
+        flex-direction: column;
         gap: 10px;
     }
     .controls-top-bar .back-button-container,
